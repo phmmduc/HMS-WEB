@@ -1,5 +1,5 @@
 /**
- * MediCore HMS - Central Interactive Client Script
+ * XônPanh HMS - Central Interactive Client Script
  * Handles modals, staff switching, dynamic prescription rows, live calculations and alerts.
  */
 document.addEventListener("DOMContentLoaded", function () {

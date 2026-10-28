@@ -14,7 +14,7 @@
     <groupId>com.hms</groupId>
     <artifactId>medicore-hms</artifactId>
     <version>1.0.0</version>
-    <name>MediCore HMS</name>
+    <name>XônPanh HMS</name>
     <description>Hospital Management System - Java Spring Boot &amp; Thymeleaf</description>
 
     <properties>

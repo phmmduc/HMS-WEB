@@ -1,6 +1,6 @@
-# MediCore HMS — Hospital Management System (Spring Boot + Thymeleaf Edition)
+# XônPanh HMS — Hospital Management System (Spring Boot + Thymeleaf Edition)
 
-Hệ thống Quản lý Bệnh viện MediCore HMS được chuyển đổi sang nền tảng **Java Spring Boot 3.x + Thymeleaf** (Frontend-only với Mock In-Memory Services), giữ nguyên phong cách thiết kế y tế hiện đại, chuyên nghiệp với Tailwind CSS và Font Awesome.
+Hệ thống Quản lý Bệnh viện XônPanh HMS được chuyển đổi sang nền tảng **Java Spring Boot 3.x + Thymeleaf** (Frontend-only với Mock In-Memory Services), giữ nguyên phong cách thiết kế y tế hiện đại, chuyên nghiệp với Tailwind CSS và Font Awesome.
 
 ---
 
