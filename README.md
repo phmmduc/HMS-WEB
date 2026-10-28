@@ -8,9 +8,9 @@ Bộ ứng dụng quản lý bệnh viện mẫu dùng HTML5, Tailwind CSS qua C
 hms-web/
 ├── chon-vai-tro.html          # Màn hình vào hệ thống / chọn vai trò ở chế độ demo
 ├── index.html                 # Tổng quan và không gian quản trị của quản lý
-├── dang-ky-kham.html          # Y tá: tiếp đón / đăng ký khám
+├── dang-ky-kham.html          # Thu ngân: tiếp đón / đăng ký khám
 ├── thu-tien.html              # Thu ngân: hóa đơn / thanh toán
-├── kham-benh.html             # Bác sĩ: khám / chẩn đoán / chỉ định
+├── kham-benh.html             # Bác sĩ: khám / chẩn đoán / kê đơn thuốc / chỉ định
 ├── xet-nghiem.html            # Y tá: xử lý xét nghiệm
 ├── cap-phat.html              # Dược sĩ: thuốc / đơn / cấp phát
 ├── benh-an.html               # Bác sĩ và y tá: hồ sơ bệnh án
@@ -38,10 +38,10 @@ Không cần Node.js hay bước build. Tailwind, Font Awesome và thư viện S
 | Vai trò | Chỉ được vào các phân hệ | Không được vào |
 |---|---|---|
 | **Quản lý bệnh viện** | Tổng quan, bệnh nhân, khám, dược, viện phí, nhân sự, báo cáo | — |
-| **Bác sĩ** | Bàn khám, chẩn đoán, chỉ định xét nghiệm, kê đơn, hồ sơ bệnh án | Dashboard quản lý, báo cáo, thu ngân, màn hình quản lý kho/cấp phát |
-| **Y tá / Điều dưỡng** | Tiếp đón, đăng ký khám, xét nghiệm, hồ sơ bệnh án | Dashboard quản lý, báo cáo, dược/cấp phát, thu ngân |
+| **Bác sĩ** | Bàn khám & kê đơn, chẩn đoán, chỉ định xét nghiệm, hồ sơ bệnh án | Dashboard quản lý, báo cáo, tiếp đón / thu ngân, màn hình quản lý kho/cấp phát |
+| **Y tá / Điều dưỡng** | Xét nghiệm cận lâm sàng, hồ sơ bệnh án | Dashboard quản lý, báo cáo, tiếp đón, dược/cấp phát, thu ngân |
 | **Dược sĩ** | Đơn thuốc chờ cấp, danh mục thuốc, lô thuốc, tồn kho, xác nhận cấp phát | Hồ sơ bệnh nhân, bệnh án, tiếp đón, khám, xét nghiệm, viện phí, nhân sự, dashboard và báo cáo |
-| **Thu ngân** | Hóa đơn viện phí và thanh toán | Hồ sơ bệnh nhân, bệnh án, tiếp đón, khám, dược, nhân sự, dashboard và báo cáo |
+| **Thu ngân** | Tiếp đón & đăng ký khám, hóa đơn viện phí, thanh toán, hồ sơ bệnh nhân | Bàn khám bác sĩ, xét nghiệm cận lâm sàng, kho dược/cấp phát, nhân sự, dashboard và báo cáo |
 
 Menu chỉ hiển thị các phân hệ được phép. Khi dán trực tiếp URL của trang bị cấm, ứng dụng chuyển về trang làm việc mặc định của vai trò. Các thẻ KPI/tổng quan bị ẩn ở vai trò không phải quản lý. Dược sĩ nhận dữ liệu đơn thuốc qua view chỉ trả mã bệnh nhân cùng thông tin đơn; không truy vấn bảng bệnh nhân, bệnh án hay phiếu khám. Thu ngân nhận hóa đơn qua view tương tự, không cần tải bảng bệnh nhân.
 

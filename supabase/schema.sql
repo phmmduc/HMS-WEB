@@ -247,7 +247,7 @@ begin
   end if;
 
   v_role := public.hms_current_role();
-  if coalesce(v_role, '') not in ('manager','doctor','nurse') then
+  if coalesce(v_role, '') not in ('manager','doctor','nurse','cashier') then
     raise exception 'Vai trò hiện tại không được phép đồng bộ chi phí khám.';
   end if;
 
@@ -338,18 +338,17 @@ begin
   end loop;
 end $$;
 
--- Y tá/điều dưỡng: tiếp đón, cập nhật hồ sơ nghiệp vụ và kết quả xét nghiệm.
+-- Y tá/điều dưỡng: cận lâm sàng, xét nghiệm và hồ sơ nghiệp vụ.
 do $$
 declare t text;
 begin
   foreach t in array array['benh_nhan','nguoi_nha','bao_hiem_yte','benh_an','chuyen_khoa','phong_kham','nhan_vien','bac_sy','loai_xet_nghiem','chan_doan','phieu_kham','ket_qua_xet_nghiem'] loop
     execute format('create policy "nurse read" on public.%I for select to authenticated using (public.hms_current_role() = ''nurse'')', t);
   end loop;
-  foreach t in array array['benh_nhan','nguoi_nha','bao_hiem_yte','benh_an','phieu_kham','ket_qua_xet_nghiem'] loop
+  foreach t in array array['ket_qua_xet_nghiem'] loop
     execute format('create policy "nurse insert" on public.%I for insert to authenticated with check (public.hms_current_role() = ''nurse'')', t);
     execute format('create policy "nurse update" on public.%I for update to authenticated using (public.hms_current_role() = ''nurse'') with check (public.hms_current_role() = ''nurse'')', t);
   end loop;
-  execute 'create policy "nurse insert" on public.phieu_thu_vien_phi for insert to authenticated with check (public.hms_current_role() = ''nurse'')';
 end $$;
 
 -- Bác sĩ: đọc dữ liệu phục vụ khám, chỉnh sửa phiếu khám được phân công, kê đơn.
@@ -381,11 +380,18 @@ begin
   execute 'create policy "pharmacist update" on public.don_thuoc for update to authenticated using (public.hms_current_role() = ''pharmacist'') with check (public.hms_current_role() = ''pharmacist'')';
 end $$;
 
--- Thu ngân: chỉ đọc hóa đơn qua view rút gọn và cập nhật trạng thái hóa đơn.
-create policy "cashier read" on public.phieu_thu_vien_phi for select to authenticated
-  using (public.hms_current_role() = 'cashier');
-create policy "cashier update" on public.phieu_thu_vien_phi for update to authenticated
-  using (public.hms_current_role() = 'cashier') with check (public.hms_current_role() = 'cashier');
+-- Thu ngân: tiếp đón, đăng ký khám bệnh, quản lý hóa đơn và thu viện phí.
+do $$
+declare t text;
+begin
+  foreach t in array array['benh_nhan','nguoi_nha','bao_hiem_yte','benh_an','chuyen_khoa','phong_kham','nhan_vien','bac_sy','chan_doan','phieu_kham','phieu_thu_vien_phi'] loop
+    execute format('create policy "cashier read" on public.%I for select to authenticated using (public.hms_current_role() = ''cashier'')', t);
+  end loop;
+  foreach t in array array['benh_nhan','nguoi_nha','bao_hiem_yte','phieu_kham','phieu_thu_vien_phi'] loop
+    execute format('create policy "cashier insert" on public.%I for insert to authenticated with check (public.hms_current_role() = ''cashier'')', t);
+    execute format('create policy "cashier update" on public.%I for update to authenticated using (public.hms_current_role() = ''cashier'') with check (public.hms_current_role() = ''cashier'')', t);
+  end loop;
+end $$;
 
 -- Chỉ quản lý có quyền truy cập toàn bộ dữ liệu và dashboard/báo cáo.
 -- Gán tài khoản thủ công sau khi tạo Auth user, ví dụ:

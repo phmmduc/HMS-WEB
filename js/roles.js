@@ -14,19 +14,19 @@
     },
     doctor: {
       key: 'doctor', dbRole: 'doctor', label: 'Bác sĩ', shortLabel: 'Bác sĩ',
-      description: 'Khám bệnh, cập nhật chẩn đoán và theo dõi hồ sơ chuyên môn.',
+      description: 'Khám bệnh, chẩn đoán ICD, chỉ định xét nghiệm và kê đơn thuốc.',
       employeeId: 'NV001', employeeName: 'BS. Nguyễn Hoàng An', icon: 'fa-stethoscope', tone: 'cyan',
       permissions: ['doctor', 'records'],
-      features: ['Hàng đợi khám', 'Chẩn đoán & chỉ định', 'Hồ sơ bệnh án được phân công'],
+      features: ['Hàng đợi khám & kê đơn', 'Chẩn đoán & chỉ định', 'Kê đơn thuốc điều trị'],
       start: 'kham-benh.html'
     },
     nurse: {
       key: 'nurse', dbRole: 'nurse', label: 'Y tá / Điều dưỡng', shortLabel: 'Y tá',
-      description: 'Tiếp đón, đăng ký khám, hỗ trợ xét nghiệm và tra cứu hồ sơ được phép.',
+      description: 'Hỗ trợ xét nghiệm, chăm sóc và theo dõi hồ sơ chuyên môn.',
       employeeId: 'NV003', employeeName: 'Điều dưỡng Lê Thu Trang', icon: 'fa-user-nurse', tone: 'green',
-      permissions: ['registration', 'lab', 'records'],
-      features: ['Tiếp đón & đăng ký khám', 'Nhập kết quả xét nghiệm', 'Tra cứu hồ sơ nghiệp vụ'],
-      start: 'dang-ky-kham.html'
+      permissions: ['lab', 'records'],
+      features: ['Nhập kết quả xét nghiệm', 'Cận lâm sàng & theo dõi', 'Tra cứu hồ sơ bệnh án'],
+      start: 'xet-nghiem.html'
     },
     pharmacist: {
       key: 'pharmacist', dbRole: 'pharmacist', label: 'Dược sĩ', shortLabel: 'Dược sĩ',
@@ -38,22 +38,22 @@
     },
     cashier: {
       key: 'cashier', dbRole: 'cashier', label: 'Thu ngân', shortLabel: 'Thu ngân',
-      description: 'Tiếp nhận thanh toán và xử lý hóa đơn viện phí.',
+      description: 'Tiếp đón, đăng ký khám bệnh, xử lý hóa đơn và thu viện phí.',
       employeeId: 'NV005', employeeName: 'Nguyễn Hải Yến', icon: 'fa-cash-register', tone: 'orange',
-      permissions: ['billing'],
-      features: ['Danh sách hóa đơn', 'Xác nhận thanh toán', 'Phương thức & ngày thu'],
-      start: 'thu-tien.html'
+      permissions: ['registration', 'billing', 'records'],
+      features: ['Tiếp đón & đăng ký khám', 'Danh sách hóa đơn & viện phí', 'Xác nhận thanh toán'],
+      start: 'dang-ky-kham.html'
     }
   };
 
   const PAGE_ROLES = {
     main: ['manager'],
-    registration: ['manager', 'nurse'],
+    registration: ['manager', 'cashier'],
     billing: ['manager', 'cashier'],
     doctor: ['manager', 'doctor'],
     lab: ['manager', 'nurse'],
     dispense: ['manager', 'pharmacist'],
-    records: ['manager', 'doctor', 'nurse'],
+    records: ['manager', 'doctor', 'nurse', 'cashier'],
     reports: ['manager']
   };
 
@@ -121,11 +121,10 @@
     }
     const map = {
       doctor: [
-        { key: 'doctor', label: 'Bàn khám bác sĩ', icon: 'fa-stethoscope', href: 'kham-benh.html' },
+        { key: 'doctor', label: 'Bàn khám & Kê đơn', icon: 'fa-stethoscope', href: 'kham-benh.html' },
         { key: 'records', label: 'Hồ sơ bệnh án', icon: 'fa-folder-medical', href: 'benh-an.html' }
       ],
       nurse: [
-        { key: 'registration', label: 'Tiếp đón & Đăng ký khám', icon: 'fa-clipboard-list', href: 'dang-ky-kham.html' },
         { key: 'lab', label: 'Xét nghiệm', icon: 'fa-vials', href: 'xet-nghiem.html' },
         { key: 'records', label: 'Hồ sơ bệnh án', icon: 'fa-folder-medical', href: 'benh-an.html' }
       ],
@@ -133,7 +132,9 @@
         { key: 'dispense', label: 'Dược & Cấp phát thuốc', icon: 'fa-capsules', href: 'cap-phat.html' }
       ],
       cashier: [
-        { key: 'billing', label: 'Thu viện phí', icon: 'fa-cash-register', href: 'thu-tien.html' }
+        { key: 'registration', label: 'Tiếp đón & Đăng ký khám', icon: 'fa-clipboard-list', href: 'dang-ky-kham.html' },
+        { key: 'billing', label: 'Thu viện phí', icon: 'fa-cash-register', href: 'thu-tien.html' },
+        { key: 'records', label: 'Hồ sơ bệnh án', icon: 'fa-folder-medical', href: 'benh-an.html' }
       ]
     };
     return map[role] || [];

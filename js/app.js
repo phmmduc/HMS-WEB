@@ -4,9 +4,9 @@
   const TABLES = ['benh_nhan','nguoi_nha','bao_hiem_yte','benh_an','chuyen_khoa','phong_kham','nhan_vien','bac_sy','y_ta','duoc_sy','loai_xet_nghiem','chan_doan','phieu_kham','ket_qua_xet_nghiem','thuoc','lo_thuoc','don_thuoc','chi_tiet_don_thuoc','phieu_thu_vien_phi'];
   const PAGE_CONFIG = {
     main: ['dashboard','Tổng quan','Theo dõi hoạt động khám chữa bệnh'],
-    registration: ['patients','Đăng ký khám','Tiếp đón bệnh nhân và tạo phiếu khám mới'],
+    registration: ['patients','Tiếp đón & Đăng ký khám','Tiếp đón bệnh nhân, đăng ký lượt khám và quản lý viện phí'],
     billing: ['billing','Thu viện phí','Quản lý hóa đơn và trạng thái thanh toán'],
-    doctor: ['exams','Bàn khám bác sĩ','Đọc hồ sơ, ghi nhận khám và chỉ định cận lâm sàng'],
+    doctor: ['exams','Bàn khám bác sĩ','Khám bệnh, chẩn đoán, chỉ định cận lâm sàng và kê đơn thuốc'],
     lab: ['exams','Xét nghiệm','Tiếp nhận chỉ định và cập nhật kết quả xét nghiệm'],
     dispense: ['pharmacy','Cấp phát thuốc','Duyệt đơn thuốc và cập nhật tồn kho theo lô'],
     records: ['patients','Hồ sơ bệnh án','Tra cứu bệnh án và lịch sử khám chữa bệnh'],
@@ -40,9 +40,9 @@
     const role = HMSRoles.getRole();
     if (role === 'manager') return TABLES;
     const map = {
-      registration: ['benh_nhan','nguoi_nha','bao_hiem_yte','benh_an','chuyen_khoa','phong_kham','nhan_vien','bac_sy','loai_xet_nghiem','chan_doan','phieu_kham'],
-      billing: ['v_hms_phieu_thu_vien_phi'],
-      doctor: ['benh_nhan','bao_hiem_yte','benh_an','chuyen_khoa','phong_kham','nhan_vien','bac_sy','loai_xet_nghiem','chan_doan','phieu_kham','ket_qua_xet_nghiem','thuoc','lo_thuoc','don_thuoc','chi_tiet_don_thuoc'],
+      registration: ['benh_nhan','nguoi_nha','bao_hiem_yte','benh_an','chuyen_khoa','phong_kham','nhan_vien','bac_sy','loai_xet_nghiem','chan_doan','phieu_kham','phieu_thu_vien_phi'],
+      billing: ['benh_nhan','phieu_kham','phieu_thu_vien_phi','v_hms_phieu_thu_vien_phi'],
+      doctor: ['benh_nhan','bao_hiem_yte','benh_an','chuyen_khoa','phong_kham','nhan_vien','bac_sy','loai_xet_nghiem','chan_doan','phieu_kham','ket_qua_xet_nghiem','thuoc','lo_thuoc','don_thuoc','chi_tiet_don_thuoc','phieu_thu_vien_phi'],
       lab: ['benh_nhan','phieu_kham','loai_xet_nghiem','ket_qua_xet_nghiem'],
       dispense: ['v_hms_don_thuoc_cap_phat','chi_tiet_don_thuoc','thuoc','lo_thuoc'],
       records: ['benh_nhan','nguoi_nha','bao_hiem_yte','benh_an','phieu_kham','chan_doan'],
@@ -368,19 +368,62 @@
     const existingLabs=(all.ket_qua_xet_nghiem||[]).filter(r=>r.id_phieukham===id);
     const selectedLabs=existingLabs.map(r=>r.id_lxn);
     const labChecks=(all.loai_xet_nghiem||[]).map(l=>{const previous=existingLabs.find(r=>r.id_lxn===l.id_lxn);return `<div class="lab-order-card"><label class="check-option"><input type="checkbox" name="lab_ids" value="${e(l.id_lxn)}" ${selectedLabs.includes(l.id_lxn)?'checked':''}><span><strong>${e(l.ten_lxn)}</strong><small>${UI.money(l.chi_phi)}</small></span></label><label class="form-field"><span>Kết quả</span><textarea name="lab_result_${e(l.id_lxn)}" rows="2" placeholder="Chưa nhập kết quả...">${e(previous?.ket_qua||'')}</textarea></label><label class="form-field"><span>Kết luận xét nghiệm</span><input name="lab_conclusion_${e(l.id_lxn)}" value="${e(previous?.ket_luan||'')}" placeholder="Nhận xét chuyên môn"></label></div>`}).join('');
+    const existingOrder=(all.don_thuoc||[]).find(d=>d.id_phieukham===id);
+    const existingDetails=existingOrder?(all.chi_tiet_don_thuoc||[]).filter(d=>d.id_dt===existingOrder.id_dt):[];
     const body=`<div class="profile-summary" style="margin-bottom:16px"><span class="profile-big"><i class="fa-solid fa-user-doctor"></i></span><div><h3>${e(namePatient(x.id_bn))}</h3><p>Mã phiếu ${e(x.id_phieukham)} · ${e(nameRoom(x.id_pk))} · ${e(nameStaff(x.id_nv))}</p></div>${UI.badge(x.trang_thai)}</div>
       <div class="form-grid">${UI.field('Giờ khám','thoi_gian_kham',x.thoi_gian_kham||new Date().toTimeString().slice(0,5),'time')}${UI.selectField('Chẩn đoán ICD','id_cd',diagnoses,x.id_cd||'')}
       <div class="form-field full"><span>Triệu chứng / khám lâm sàng *</span><textarea name="trieu_chung" required rows="3" placeholder="Triệu chứng, dấu hiệu sinh tồn, khám lâm sàng...">${e(x.trieu_chung||'')}</textarea></div>
       <div class="form-field full"><span>Chỉ định xét nghiệm và kết quả theo từng loại</span><div class="lab-result-grid">${labChecks}</div><small>Đánh dấu xét nghiệm cần chỉ định; có thể ghi kết quả nếu đã có dữ liệu xác nhận.</small></div>
+      <div class="form-section-title full" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between">
+        <span><i class="fa-solid fa-prescription-bottle-medical"></i> Kê đơn thuốc điều trị</span>
+        <button type="button" class="btn btn-secondary btn-sm" id="doctor-add-med-btn"><i class="fa-solid fa-plus"></i> Thêm thuốc vào đơn</button>
+      </div>
+      <div class="form-field full">
+        <div id="doctor-med-container" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px">
+          <div id="doctor-med-list">${existingDetails.length?existingDetails.map((d,i)=>medRow(i,d.id_thuoc,d.so_luong,d.lieu_dung,d.cach_dung,d.ghi_chu)).join(''):''}</div>
+          <div id="doctor-med-empty-hint" style="${existingDetails.length?'display:none;':''}text-align:center;padding:12px;color:#94a3b8;font-size:12px">
+            <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>Chưa thêm thuốc. Nhấn <strong>"Thêm thuốc vào đơn"</strong> nếu bệnh nhân cần kê đơn thuốc.
+          </div>
+          <div class="form-grid" style="margin-top:10px;grid-template-columns:140px 1fr">
+            ${UI.field('Ngày kê đơn','rx_ngay_ke',existingOrder?.ngay_ke||dayToday(),'date')}
+            <div class="form-field"><span>Lời dặn / Ghi chú đơn thuốc</span><input name="rx_ghi_chu" placeholder="Cách dùng thuốc, lời dặn chung..." value="${e(existingOrder?.ghi_chu||'')}"></div>
+          </div>
+        </div>
+      </div>
       <div class="form-field full"><span>Kết luận / hướng xử trí</span><textarea name="ket_luan" rows="2" placeholder="Kết luận chuyên môn, lời dặn...">${e(x.ket_luan||'')}</textarea></div></div>`;
-    UI.openModal({title:'Phiếu khám & chỉ định',subtitle:'Ghi nhận khám bệnh, mã ICD và xét nghiệm',body,submitText:'Lưu kết quả khám',size:'lg',onSubmit:async fd=>{
+    UI.openModal({title:'Phiếu khám & Kê đơn thuốc',subtitle:'Ghi nhận kết quả khám bệnh, mã ICD, xét nghiệm và đơn thuốc',body,submitText:'Lưu kết quả khám & đơn thuốc',size:'lg',onReady:form=>{
+      const list=form.querySelector('#doctor-med-list');
+      const emptyHint=form.querySelector('#doctor-med-empty-hint');
+      form.querySelector('#doctor-add-med-btn')?.addEventListener('click',()=>{
+        if(emptyHint)emptyHint.style.display='none';
+        list?.insertAdjacentHTML('beforeend',medRow(list.querySelectorAll('[data-med-row]').length));
+      });
+      list?.addEventListener('click',ev=>{
+        const btn=ev.target.closest('[data-remove-med]');
+        if(btn){
+          btn.closest('[data-med-row]')?.remove();
+          if(list.querySelectorAll('[data-med-row]').length===0&&emptyHint)emptyHint.style.display='block';
+        }
+      });
+    },onSubmit:async fd=>{
       const chosen=fd.getAll('lab_ids');
       const examPatch={trieu_chung:String(fd.get('trieu_chung')||'').trim(),id_cd:fd.get('id_cd')||null,thoi_gian_kham:fd.get('thoi_gian_kham')||'',ket_luan:String(fd.get('ket_luan')||'').trim(),trang_thai:chosen.length?'Chờ xét nghiệm':'Chờ thanh toán'};
       await HMSApi.update('phieu_kham',id,examPatch);
       for(const labId of chosen){const exists=(all.ket_qua_xet_nghiem||[]).find(r=>r.id_phieukham===id&&r.id_lxn===labId);const labResult=String(fd.get(`lab_result_${labId}`)||'').trim();const labConclusion=String(fd.get(`lab_conclusion_${labId}`)||'').trim();const resultRow={id_kqxn:exists?.id_kqxn||HMSApi.uid('KQ'),id_phieukham:id,id_lxn:labId,ket_qua:labResult,ket_luan:labConclusion||String(fd.get('ket_luan')||'').trim(),thoi_gian:labResult?dayToday():'',trang_thai:labResult?'Hoàn thành':'Chờ lấy mẫu'};await HMSApi.save('ket_qua_xet_nghiem',resultRow);}
       for(const old of (all.ket_qua_xet_nghiem||[]).filter(r=>r.id_phieukham===id&&!chosen.includes(r.id_lxn))){await HMSApi.delete('ket_qua_xet_nghiem',old.id_kqxn);}
+      const meds=fd.getAll('medicine_id').filter(Boolean);
+      const qtys=fd.getAll('quantity'),doses=fd.getAll('dosage'),usages=fd.getAll('usage'),notes=fd.getAll('medicine_note');
+      if(meds.length){
+        if(meds.some((v,i)=>!v||Number(qtys[i])<=0))throw new Error('Chọn thuốc và số lượng hợp lệ cho tất cả các dòng thuốc.');
+        const lots=all.lo_thuoc||[];let total=0;const details=[];
+        meds.forEach((medId,i)=>{const med=rowBy('thuoc','id_thuoc',medId);const lotsFor=lots.filter(l=>l.id_thuoc===medId&&Number(l.so_luong_ton)>0&&(!l.han_su_dung||l.han_su_dung>=dayToday())).sort((a,b)=>String(a.han_su_dung).localeCompare(String(b.han_su_dung)));const unit=Number(lotsFor[0]?.gia_ban||0);total+=unit*Number(qtys[i]);details.push({id_ctdt:HMSApi.uid('CT'),id_dt:existingOrder?.id_dt||'',id_thuoc:medId,so_luong:Number(qtys[i]),lieu_dung:String(doses[i]||'').trim(),cach_dung:String(usages[i]||'').trim(),ghi_chu:String(notes[i]||'').trim(),don_gia:unit});if(!med)throw new Error('Không tìm thấy thuốc được chọn.');});
+        const orderId=existingOrder?.id_dt||HMSApi.uid('DT');
+        const order={id_dt:orderId,id_phieukham:id,id_nv:currentStaff(),ngay_ke:fd.get('rx_ngay_ke')||dayToday(),tong_tien:total,ghi_chu:String(fd.get('rx_ghi_chu')||'').trim(),trang_thai:existingOrder?.trang_thai||'Chờ cấp phát'};
+        if(existingOrder){await HMSApi.update('don_thuoc',orderId,order);for(const d of (all.chi_tiet_don_thuoc||[]).filter(z=>z.id_dt===orderId))await HMSApi.delete('chi_tiet_don_thuoc',d.id_ctdt);}else await HMSApi.insert('don_thuoc',order);
+        for(const d of details){d.id_dt=orderId;await HMSApi.insert('chi_tiet_don_thuoc',d);}
+      }
       await syncInvoiceForExam(id);
-      UI.showToast('Đã lưu thông tin khám và chỉ định.');await loadAll();pageType==='main'?renderMain():renderStandalone();
+      UI.showToast(meds.length?'Đã lưu thông tin khám và đơn thuốc.':'Đã lưu thông tin khám.');await loadAll();pageType==='main'?renderMain():renderStandalone();
     }});
   }
   function medRow(index, medId='', qty=1, dose='', method='', note='') {
@@ -388,27 +431,40 @@
   }
   async function openPrescriptionModal(examId) {
     const x=rowBy('phieu_kham','id_phieukham',examId);if(!x)return;
-    const existing=(all.don_thuoc||[]).find(d=>d.id_phieukham===examId&&d.trang_thai==='Chờ cấp phát');
+    const existing=(all.don_thuoc||[]).find(d=>d.id_phieukham===examId);
     const detailRows=existing?(all.chi_tiet_don_thuoc||[]).filter(d=>d.id_dt===existing.id_dt):[];
-    const body=`<div class="profile-summary" style="margin-bottom:16px"><span class="profile-big"><i class="fa-solid fa-prescription-bottle-medical"></i></span><div><h3>${e(namePatient(x.id_bn))}</h3><p>Phiếu ${e(examId)} · ${e(nameDiagnosis(x.id_cd))}</p></div></div>
+    const isDispensed=existing?.trang_thai==='Đã cấp phát';
+    const body=`<div class="profile-summary" style="margin-bottom:16px"><span class="profile-big"><i class="fa-solid fa-prescription-bottle-medical"></i></span><div><h3>${e(namePatient(x.id_bn))}</h3><p>Phiếu ${e(examId)} · ${e(nameDiagnosis(x.id_cd))}</p></div>${existing?UI.badge(existing.trang_thai):''}</div>
+      ${isDispensed?'<div class="inline-note" style="margin-bottom:12px;border-color:#f59e0b;background:#fffbeb;color:#b45309"><i class="fa-solid fa-triangle-exclamation"></i><span>Đơn thuốc này đã được quầy dược cấp phát. Không thể thay đổi các mục đã xuất kho.</span></div>':''}
       <div id="prescription-med-list">${detailRows.length?detailRows.map((d,i)=>medRow(i,d.id_thuoc,d.so_luong,d.lieu_dung,d.cach_dung,d.ghi_chu)).join(''):medRow(0)}</div>
-      <button type="button" class="btn btn-secondary btn-sm" id="add-med-row"><i class="fa-solid fa-plus"></i> Thêm thuốc</button><div class="soft-divider"></div><div class="form-grid">${UI.field('Ngày kê','ngay_ke',dayToday(),'date','required')}
+      ${!isDispensed?'<button type="button" class="btn btn-secondary btn-sm" id="add-med-row"><i class="fa-solid fa-plus"></i> Thêm thuốc</button>':''}<div class="soft-divider"></div><div class="form-grid">${UI.field('Ngày kê','ngay_ke',existing?.ngay_ke||dayToday(),'date','required')}
       <div class="form-field"><span>Ghi chú đơn thuốc</span><input name="ghi_chu" form="hms-modal-form" placeholder="Lời dặn chung cho đơn thuốc" value="${e(existing?.ghi_chu||'')}"></div></div>
       <div class="inline-note" style="margin-top:15px;margin-bottom:0"><i class="fa-solid fa-circle-info"></i><span>Tổng tiền được tính từ giá bán của lô thuốc đầu tiên còn hạn. Tồn kho chỉ giảm khi dược sĩ xác nhận cấp phát.</span></div>`;
-    UI.openModal({title:existing?'Cập nhật đơn thuốc':'Kê đơn thuốc',subtitle:'Thuốc kê đơn cần theo chỉ định chuyên môn của bác sĩ',body,submitText:existing?'Lưu đơn thuốc':'Tạo đơn thuốc',size:'lg',onReady:form=>{
+    UI.openModal({title:existing?'Cập nhật đơn thuốc':'Kê đơn thuốc',subtitle:`Bệnh nhân: ${namePatient(x.id_bn)} · Phiếu khám: ${examId}`,body,submitText:isDispensed?'Đóng':(existing?'Lưu thay đổi':'Tạo đơn thuốc'),size:'lg',onReady:form=>{
+      if(isDispensed){form.querySelectorAll('input, select, button[data-remove-med]').forEach(el=>el.disabled=true);return;}
       $('#add-med-row')?.addEventListener('click',()=>$('#prescription-med-list')?.insertAdjacentHTML('beforeend',medRow($('#prescription-med-list').querySelectorAll('[data-med-row]').length)));
       $('#prescription-med-list')?.addEventListener('click',ev=>{const btn=ev.target.closest('[data-remove-med]');if(btn){const rows=$('#prescription-med-list').querySelectorAll('[data-med-row]');if(rows.length>1)btn.closest('[data-med-row]').remove();else UI.showToast('Đơn thuốc cần ít nhất một loại thuốc.','warning');}});
     },onSubmit:async fd=>{
+      if(isDispensed)return;
       const meds=fd.getAll('medicine_id'),qtys=fd.getAll('quantity'),doses=fd.getAll('dosage'),usages=fd.getAll('usage'),notes=fd.getAll('medicine_note');
       if(!meds.length||meds.some((v,i)=>!v||Number(qtys[i])<=0))throw new Error('Chọn thuốc và số lượng hợp lệ cho tất cả các dòng.');
       const lots=all.lo_thuoc||[];let total=0;const details=[];
       meds.forEach((medId,i)=>{const med=rowBy('thuoc','id_thuoc',medId);const lotsFor=lots.filter(l=>l.id_thuoc===medId&&Number(l.so_luong_ton)>0&&(!l.han_su_dung||l.han_su_dung>=dayToday())).sort((a,b)=>String(a.han_su_dung).localeCompare(String(b.han_su_dung)));const unit=Number(lotsFor[0]?.gia_ban||0);total+=unit*Number(qtys[i]);details.push({id_ctdt:HMSApi.uid('CT'),id_dt:existing?.id_dt||'',id_thuoc:medId,so_luong:Number(qtys[i]),lieu_dung:String(doses[i]||'').trim(),cach_dung:String(usages[i]||'').trim(),ghi_chu:String(notes[i]||'').trim(),don_gia:unit});if(!med)throw new Error('Không tìm thấy thuốc được chọn.');});
       const orderId=existing?.id_dt||HMSApi.uid('DT');
-      const order={id_dt:orderId,id_phieukham:examId,id_nv:currentStaff(),ngay_ke:fd.get('ngay_ke')||dayToday(),tong_tien:total,ghi_chu:String(fd.get('ghi_chu')||'').trim(),trang_thai:'Chờ cấp phát'};
+      const order={id_dt:orderId,id_phieukham:examId,id_nv:currentStaff(),ngay_ke:fd.get('ngay_ke')||dayToday(),tong_tien:total,ghi_chu:String(fd.get('ghi_chu')||'').trim(),trang_thai:existing?.trang_thai||'Chờ cấp phát'};
       if(existing){await HMSApi.update('don_thuoc',orderId,order);for(const d of (all.chi_tiet_don_thuoc||[]).filter(z=>z.id_dt===orderId))await HMSApi.delete('chi_tiet_don_thuoc',d.id_ctdt);}else await HMSApi.insert('don_thuoc',order);
       for(const d of details){d.id_dt=orderId;await HMSApi.insert('chi_tiet_don_thuoc',d);}
       await syncInvoiceForExam(examId);
       UI.showToast(`Đã lưu đơn thuốc ${orderId}.`);await loadAll();pageType==='main'?renderMain():renderStandalone();
+    }});
+  }
+  async function openQuickPrescribeModal() {
+    const activeExams=(all.phieu_kham||[]).filter(x=>x.trang_thai!=='Hoàn tất');
+    if(!activeExams.length){UI.showToast('Không có phiếu khám nào đang chờ xử lý.','warning');return;}
+    const examOptions=activeExams.map(x=>({value:x.id_phieukham,label:`${namePatient(x.id_bn)} (${x.id_phieukham}) · ${nameRoom(x.id_pk)} · ${x.trang_thai}`}));
+    const body=`<div class="form-grid">${UI.selectField('Chọn bệnh nhân / Phiếu khám *','target_exam_id',[{value:'',label:'-- Chọn bệnh nhân cần kê đơn --'},...examOptions],'','required')}<div class="inline-note full" style="margin-top:10px;margin-bottom:0"><i class="fa-solid fa-circle-info"></i><span>Chọn bệnh nhân để mở form kê đơn thuốc hoặc điều chỉnh đơn thuốc đã kê.</span></div></div>`;
+    UI.openModal({title:'Kê đơn thuốc cho bệnh nhân',subtitle:'Chọn phiếu khám trong hàng đợi khám bệnh',body,submitText:'Mở form kê đơn',onSubmit:async fd=>{
+      const targetId=fd.get('target_exam_id');if(!targetId)throw new Error('Vui lòng chọn phiếu khám.');await openPrescriptionModal(targetId);
     }});
   }
   async function syncInvoiceForExam(examId) {
@@ -518,13 +574,13 @@
   }
   function renderStandalone() {
     const config=PAGE_CONFIG[pageType]||PAGE_CONFIG.main;
-    const pageActions={registration:'<button class="btn btn-primary" data-action="create-exam"><i class="fa-solid fa-plus"></i> Đăng ký lượt khám</button>',billing:'<button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Làm mới</button>',doctor:'<button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Làm mới hàng đợi</button>',lab:'<button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Làm mới kết quả</button>',dispense:'<button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Cập nhật tồn kho</button>',records:['manager','nurse'].includes(HMSRoles.getRole())?'<button class="btn btn-primary" data-action="new-patient"><i class="fa-solid fa-user-plus"></i> Thêm hồ sơ</button>':'',reports:'<button class="btn btn-secondary" data-action="export-csv"><i class="fa-solid fa-file-csv"></i> Xuất CSV</button>'};
+    const pageActions={registration:'<button class="btn btn-primary" data-action="create-exam"><i class="fa-solid fa-plus"></i> Đăng ký lượt khám</button>',billing:'<button class="btn btn-primary" data-action="create-exam"><i class="fa-solid fa-plus"></i> Đăng ký lượt khám</button><button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Làm mới</button>',doctor:'<button class="btn btn-primary" data-action="quick-prescribe"><i class="fa-solid fa-prescription"></i> Kê đơn thuốc</button><button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Làm mới</button>',lab:'<button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Làm mới kết quả</button>',dispense:'<button class="btn btn-secondary" data-action="refresh"><i class="fa-solid fa-rotate"></i> Cập nhật tồn kho</button>',records:['manager','cashier','nurse'].includes(HMSRoles.getRole())?'<button class="btn btn-primary" data-action="new-patient"><i class="fa-solid fa-user-plus"></i> Thêm hồ sơ</button>':'',reports:'<button class="btn btn-secondary" data-action="export-csv"><i class="fa-solid fa-file-csv"></i> Xuất CSV</button>'};
     UI.setHeading(config[1],config[2],`${!HMSApi.isSupabase?'<span class="pill"><i class="fa-solid fa-flask"></i> Dữ liệu demo</span>':''}${pageActions[pageType]||''}`);
     const content={registration:renderRegistration, billing:renderBilling, doctor:renderDoctor, lab:renderLab, dispense:renderDispense, records:renderRecords, reports:renderReports}[pageType]||renderDashboard;
     $('#app-content').innerHTML=content();
     if(pageType==='billing')wireSearch('invoice-search','invoice-table-body',renderInvoiceRows);
     if(pageType==='registration'){wireSearch('exam-search','exam-table-body',renderExamRows);wireFilter('exam-status-filter','exam-table-body',renderExamRows);}
-    if(pageType==='doctor')wireSearch('doctor-search','doctor-table-body',renderDoctorRows);
+    if(pageType==='doctor'){wireSearch('doctor-search','doctor-table-body',renderDoctorRows);wireSearch('doctor-prescribe-search','doctor-prescriptions-body',renderDoctorPrescriptionRows);}
     if(pageType==='lab')wireSearch('lab-search','lab-table-body',renderLabRows);
     if(pageType==='dispense')wireSearch('dispense-search','dispense-table-body',renderDispenseRows);
     if(pageType==='records')wireSearch('record-search','record-table-body',renderRecordRows);
@@ -536,12 +592,43 @@
   }
   function renderDoctor() {
     const pending=(all.phieu_kham||[]).filter(x=>['Chờ khám','Chờ xét nghiệm','Chờ thanh toán'].includes(x.trang_thai)).length;
-    return `<div class="stat-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="stat-card"><div class="stat-top"><span class="stat-label">Chờ khám</span><span class="stat-icon tone-blue"><i class="fa-solid fa-user-clock"></i></span></div><div class="stat-value">${(all.phieu_kham||[]).filter(x=>x.trang_thai==='Chờ khám').length}</div><div class="stat-sub">Cần bác sĩ tiếp nhận</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Chờ xét nghiệm</span><span class="stat-icon tone-orange"><i class="fa-solid fa-vials"></i></span></div><div class="stat-value">${(all.phieu_kham||[]).filter(x=>x.trang_thai==='Chờ xét nghiệm').length}</div><div class="stat-sub">Đang thực hiện cận lâm sàng</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Đang xử lý</span><span class="stat-icon tone-violet"><i class="fa-solid fa-list-check"></i></span></div><div class="stat-value">${pending}</div><div class="stat-sub">Tổng số phiếu chưa kết thúc</div></div></div><section class="section-card"><div class="section-card-header"><div><div class="section-card-title"><i class="fa-solid fa-user-doctor"></i> Hàng đợi bác sĩ</div><div class="section-card-subtitle">Mở phiếu để ghi nhận triệu chứng, mã ICD và chỉ định xét nghiệm</div></div></div><div class="section-card-body"><div class="table-toolbar"><label class="search-control"><i class="fa-solid fa-magnifying-glass"></i><input id="doctor-search" type="search" placeholder="Tìm bệnh nhân hoặc mã phiếu..."></label><span class="toolbar-spacer"></span><span class="pill">Vai trò chọn ở thanh trên</span></div><div id="doctor-table-body">${renderDoctorRows()}</div></div></section>`;
+    const waiting=(all.phieu_kham||[]).filter(x=>x.trang_thai==='Chờ khám').length;
+    const labWaiting=(all.phieu_kham||[]).filter(x=>x.trang_thai==='Chờ xét nghiệm').length;
+    const prescribedCount=(all.don_thuoc||[]).length;
+    return `<div class="stat-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <div class="stat-card"><div class="stat-top"><span class="stat-label">Chờ khám</span><span class="stat-icon tone-blue"><i class="fa-solid fa-user-clock"></i></span></div><div class="stat-value">${waiting}</div><div class="stat-sub">Cần bác sĩ tiếp nhận</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-label">Chờ xét nghiệm</span><span class="stat-icon tone-orange"><i class="fa-solid fa-vials"></i></span></div><div class="stat-value">${labWaiting}</div><div class="stat-sub">Đang thực hiện cận lâm sàng</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-label">Đơn thuốc đã kê</span><span class="stat-icon tone-green"><i class="fa-solid fa-prescription-bottle-medical"></i></span></div><div class="stat-value">${prescribedCount}</div><div class="stat-sub">Đơn thuốc của bệnh nhân</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-label">Đang xử lý</span><span class="stat-icon tone-violet"><i class="fa-solid fa-list-check"></i></span></div><div class="stat-value">${pending}</div><div class="stat-sub">Tổng số phiếu chưa kết thúc</div></div>
+    </div>
+    <section class="section-card"><div class="section-card-header"><div><div class="section-card-title"><i class="fa-solid fa-user-doctor"></i> Hàng đợi khám & Kê đơn</div><div class="section-card-subtitle">Mở phiếu để ghi nhận triệu chứng, chẩn đoán ICD, chỉ định cận lâm sàng và kê đơn thuốc</div></div><button class="btn btn-primary btn-sm" data-action="quick-prescribe"><i class="fa-solid fa-plus"></i> Kê đơn thuốc</button></div><div class="section-card-body"><div class="table-toolbar"><label class="search-control"><i class="fa-solid fa-magnifying-glass"></i><input id="doctor-search" type="search" placeholder="Tìm bệnh nhân hoặc mã phiếu..."></label><span class="toolbar-spacer"></span><span class="pill">Bác sĩ khám & kê đơn</span></div><div id="doctor-table-body">${renderDoctorRows()}</div></div></section>
+    <section class="section-card" style="margin-top:18px"><div class="section-card-header"><div><div class="section-card-title"><i class="fa-solid fa-pills"></i> Danh sách đơn thuốc đã kê</div><div class="section-card-subtitle">Theo dõi đơn thuốc, danh mục thuốc đã chỉ định và trạng thái cấp phát từ quầy dược</div></div></div><div class="section-card-body"><div class="table-toolbar"><label class="search-control"><i class="fa-solid fa-magnifying-glass"></i><input id="doctor-prescribe-search" type="search" placeholder="Tìm mã đơn hoặc bệnh nhân..."></label><span class="toolbar-spacer"></span><span class="result-count">${prescribedCount} đơn thuốc</span></div><div id="doctor-prescriptions-body">${renderDoctorPrescriptionRows()}</div></div></section>`;
   }
   function renderDoctorRows() {
     const filter=(searchText||'').toLocaleLowerCase('vi');
     const rows=(all.phieu_kham||[]).filter(x=>`${x.id_phieukham} ${namePatient(x.id_bn)} ${nameRoom(x.id_pk)}`.toLocaleLowerCase('vi').includes(filter)&&x.trang_thai!=='Hoàn tất');
-    return table(['MÃ PHIẾU','BỆNH NHÂN','TRIỆU CHỨNG','PHÒNG KHÁM','NGÀY','TRẠNG THÁI','TÁC VỤ'],rows.map(x=>`<tr><td><span class="id-code">${e(x.id_phieukham)}</span></td><td>${person(namePatient(x.id_bn),x.id_bn)}</td><td style="max-width:230px;white-space:normal">${e(x.trieu_chung||'Chưa ghi triệu chứng')}</td><td>${e(nameRoom(x.id_pk))}</td><td>${UI.date(x.ngay_dky)}</td><td>${UI.badge(x.trang_thai)}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" data-action="doctor" data-id="${e(x.id_phieukham)}">Mở phiếu</button><button class="btn-icon" title="Kê đơn" data-action="prescribe" data-id="${e(x.id_phieukham)}"><i class="fa-solid fa-prescription"></i></button></div></td></tr>`).join(''),'Không có phiếu khám trong hàng đợi.');
+    return table(['MÃ PHIẾU','BỆNH NHÂN','TRIỆU CHỨNG','PHÒNG KHÁM','NGÀY','ĐƠN THUỐC','TRẠNG THÁI','TÁC VỤ'],rows.map(x=>{
+      const existingOrder=(all.don_thuoc||[]).find(d=>d.id_phieukham===x.id_phieukham);
+      const detailCount=existingOrder?(all.chi_tiet_don_thuoc||[]).filter(d=>d.id_dt===existingOrder.id_dt).length:0;
+      const rxBadge=existingOrder?`<span class="pill" style="background:#e0f2fe;color:#0284c7;font-weight:600"><i class="fa-solid fa-pills"></i> ${detailCount} thuốc · ${UI.money(existingOrder.tong_tien)}</span>`:'<span class="pill" style="background:#f1f5f9;color:#64748b">Chưa kê đơn</span>';
+      return `<tr><td><span class="id-code">${e(x.id_phieukham)}</span></td><td>${person(namePatient(x.id_bn),x.id_bn)}</td><td style="max-width:210px;white-space:normal">${e(x.trieu_chung||'Chưa ghi triệu chứng')}</td><td>${e(nameRoom(x.id_pk))}</td><td>${UI.date(x.ngay_dky)}</td><td>${rxBadge}</td><td>${UI.badge(x.trang_thai)}</td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" data-action="doctor" data-id="${e(x.id_phieukham)}" title="Khám bệnh & Kê đơn"><i class="fa-solid fa-stethoscope"></i> Khám & Kê đơn</button><button class="btn ${existingOrder?'btn-ghost':'btn-primary'} btn-sm" data-action="prescribe" data-id="${e(x.id_phieukham)}" title="${existingOrder?'Sửa đơn thuốc':'Kê đơn thuốc'}"><i class="fa-solid fa-prescription"></i> ${existingOrder?'Sửa đơn':'Kê đơn'}</button></div></td></tr>`;
+    }).join(''),'Không có phiếu khám trong hàng đợi.');
+  }
+  function renderDoctorPrescriptionRows() {
+    const filter=(searchText||'').toLocaleLowerCase('vi');
+    const rows=(all.don_thuoc||[]).filter(x=>{
+      const exam=rowBy('phieu_kham','id_phieukham',x.id_phieukham);
+      const patientName=namePatient(exam?.id_bn||x.id_bn);
+      return `${x.id_dt} ${x.id_phieukham} ${patientName}`.toLocaleLowerCase('vi').includes(filter);
+    });
+    return table(['MÃ ĐƠN','BỆNH NHÂN','PHIẾU KHÁM','NGÀY KÊ','CHI TIẾT THUỐC','TỔNG TIỀN','TRẠNG THÁI','TÁC VỤ'],rows.map(x=>{
+      const exam=rowBy('phieu_kham','id_phieukham',x.id_phieukham);
+      const patientId=x.id_bn||exam?.id_bn||'';
+      const patientName=namePatient(patientId);
+      const detail=(all.chi_tiet_don_thuoc||[]).filter(d=>d.id_dt===x.id_dt);
+      const details=detail.map(d=>`${nameDrug(d.id_thuoc)} × ${d.so_luong}`).join('; ');
+      return `<tr><td><span class="id-code">${e(x.id_dt)}</span></td><td>${person(patientName,patientId)}</td><td><span class="id-code">${e(x.id_phieukham)}</span></td><td>${UI.date(x.ngay_ke)}</td><td style="white-space:normal;max-width:240px">${e(details||'Chưa có chi tiết')}</td><td><strong>${UI.money(x.tong_tien)}</strong></td><td>${UI.badge(x.trang_thai)}</td><td><button class="btn btn-secondary btn-sm" data-action="prescribe" data-id="${e(x.id_phieukham)}"><i class="fa-solid fa-pen-to-square"></i> ${x.trang_thai==='Đã cấp phát'?'Xem đơn':'Sửa đơn'}</button></td></tr>`;
+    }).join(''),'Chưa có đơn thuốc nào được kê.');
   }
   function renderLab() {
     const pending=(all.ket_qua_xet_nghiem||[]).filter(x=>x.trang_thai!=='Hoàn thành').length;
@@ -563,7 +650,7 @@
     return table(['MÃ ĐƠN','MÃ BỆNH NHÂN','NGÀY KÊ','CHI TIẾT THUỐC','TỔNG TIỀN','TRẠNG THÁI','TÁC VỤ'],rows.map(x=>{const exam=pharmacistMode?null:rowBy('phieu_kham','id_phieukham',x.id_phieukham);const patientId=x.id_bn||exam?.id_bn||'—';const patientLabel=pharmacistMode?`Mã BN ${patientId}`:namePatient(patientId);const detail=(all.chi_tiet_don_thuoc||[]).filter(d=>d.id_dt===x.id_dt);const details=detail.map(d=>`${nameDrug(d.id_thuoc)} × ${d.so_luong}`).join('; ');return `<tr><td><span class="id-code">${e(x.id_dt)}</span></td><td>${person(patientLabel,patientId)}</td><td>${UI.date(x.ngay_ke)}</td><td style="white-space:normal;min-width:180px;max-width:320px">${e(details||'Chưa có chi tiết')}</td><td><strong>${UI.money(x.tong_tien)}</strong></td><td>${UI.badge(x.trang_thai)}</td><td>${x.trang_thai==='Chờ cấp phát'?`<button class="btn btn-primary btn-sm" data-action="dispense" data-id="${e(x.id_dt)}"><i class="fa-solid fa-check"></i> Cấp phát</button>`:'<span class="small-muted">Đã xử lý</span>'}</td></tr>`}).join(''),'Không có đơn thuốc.');
   }
   function renderRecords() {
-    const canCreatePatient = ['manager','nurse'].includes(HMSRoles.getRole());
+    const canCreatePatient = ['manager','cashier','nurse'].includes(HMSRoles.getRole());
     return `<section class="section-card"><div class="section-card-header"><div><div class="section-card-title"><i class="fa-solid fa-folder-medical"></i> Tra cứu hồ sơ bệnh án</div><div class="section-card-subtitle">Tìm bằng họ tên, mã bệnh nhân, CCCD hoặc số điện thoại</div></div>${canCreatePatient?'<button class="btn btn-primary" data-action="new-patient"><i class="fa-solid fa-plus"></i> Bệnh nhân mới</button>':''}</div><div class="section-card-body"><div class="table-toolbar"><label class="search-control"><i class="fa-solid fa-magnifying-glass"></i><input id="record-search" type="search" placeholder="Nhập thông tin bệnh nhân..."></label><span class="toolbar-spacer"></span><span class="result-count">${(all.benh_nhan||[]).length} hồ sơ</span></div><div id="record-table-body">${renderRecordRows()}</div></div></section>`;
   }
   function renderRecordRows() {
@@ -596,6 +683,7 @@
       else if(key==='create-exam')await openExamModal();
       else if(key==='doctor')await openDoctorModal(id);
       else if(key==='prescribe')await openPrescriptionModal(id);
+      else if(key==='quick-prescribe')await openQuickPrescribeModal();
       else if(key==='pay')await payInvoice(id);
       else if(key==='lab-result')await openLabResult(id);
       else if(key==='dispense')await dispenseOrder(id);
@@ -622,6 +710,6 @@
   }
 
   function init() { if(!document.getElementById('app-root'))return;begin(); }
-  window.HMSApp = { init, refresh, openPatientModal, openExamModal, openDoctorModal, openPrescriptionModal, payInvoice, openLabResult, dispenseOrder, loadAll };
+  window.HMSApp = { init, refresh, openPatientModal, openExamModal, openDoctorModal, openPrescriptionModal, openQuickPrescribeModal, payInvoice, openLabResult, dispenseOrder, loadAll };
   document.addEventListener('DOMContentLoaded',init);
 })();
