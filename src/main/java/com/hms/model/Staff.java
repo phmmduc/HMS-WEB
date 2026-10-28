@@ -13,10 +13,15 @@ public class Staff {
     private String vaiTro; // "Bác sĩ", "Y tá", "Dược sĩ", "Thu ngân", "Quản lý"
     private String trangThai; // "Đang làm việc"
     private String specialtyDetail; // e.g. "Thạc sĩ · Nội tổng hợp" hoặc "Điều dưỡng đại học"
+    private String idPk; // Mã phòng khám phân công (dành cho Bác sĩ)
 
     public Staff() {}
 
     public Staff(String idNv, String hoTen, String gioiTinh, String ngaySinh, List<String> sdt, String email, String vaiTro, String trangThai, String specialtyDetail) {
+        this(idNv, hoTen, gioiTinh, ngaySinh, sdt, email, vaiTro, trangThai, specialtyDetail, null);
+    }
+
+    public Staff(String idNv, String hoTen, String gioiTinh, String ngaySinh, List<String> sdt, String email, String vaiTro, String trangThai, String specialtyDetail, String idPk) {
         this.idNv = idNv;
         this.hoTen = hoTen;
         this.gioiTinh = gioiTinh;
@@ -26,6 +31,7 @@ public class Staff {
         this.vaiTro = vaiTro;
         this.trangThai = trangThai;
         this.specialtyDetail = specialtyDetail;
+        this.idPk = idPk;
     }
 
     public String getIdNv() { return idNv; }
@@ -65,5 +71,8 @@ public class Staff {
     public String getPhoneDisplay() {
         return (sdt != null && !sdt.isEmpty()) ? String.join(", ", sdt) : "—";
     }
+
+    public String getIdPk() { return idPk; }
+    public void setIdPk(String idPk) { this.idPk = idPk; }
 }
 

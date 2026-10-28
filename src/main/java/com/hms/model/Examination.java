@@ -108,6 +108,15 @@ public class Examination {
         return prescription != null;
     }
 
+    public boolean hasPrescriptionItems() {
+        return prescription != null && prescription.getItems() != null && !prescription.getItems().isEmpty();
+    }
+
+    public boolean hasLab(String labId) {
+        if (labResults == null || labId == null) return false;
+        return labResults.stream().anyMatch(lr -> labId.equals(lr.getIdLxn()));
+    }
+
     public String getInitials() {
         if (patientName == null || patientName.trim().isEmpty()) return "BN";
         String[] parts = patientName.trim().split("\\s+");

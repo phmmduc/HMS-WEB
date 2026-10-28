@@ -48,7 +48,7 @@
                         <span class="stat-icon tone-green"><i class="fa-solid fa-wallet"></i></span>
                     </div>
                     <div class="stat-value" style="font-size: 22px;" th:text="${#numbers.formatDecimal(totalPaid, 0, 'POINT', 0, 'POINT') + ' đ'}">353.000 đ</div>
-                    <div class="stat-sub">Đã xác nhận thanh toán</div>
+                    <div class="stat-sub"><a th:href="@{/billing}" style="color: #0284c7; text-decoration: underline; font-weight: 600;">Xem biểu đồ tương tác &rarr;</a></div>
                 </div>
 
                 <div class="stat-card">

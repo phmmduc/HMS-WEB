@@ -45,6 +45,7 @@
 
             <form th:action="@{/examination/save}" method="post" th:object="${examForm}">
                 <input type="hidden" name="idPhieukham" th:value="${exam.idPhieukham}">
+                <input type="hidden" name="idNv" th:value="${currentStaff != null and currentStaff.vaiTro == 'Bác sĩ' ? currentStaff.idNv : exam.idNv}">
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Left Column: Examination & Clinical Findings -->
@@ -102,69 +103,84 @@
                             <div class="section-card-body">
                                 <div id="prescription-rows-container" style="display: grid; gap: 12px;">
                                     <!-- Render existing medicines if present, else empty rows -->
-                                    <div th:if="${exam.prescription != null and !#lists.isEmpty(exam.prescription.items)}"
-                                         th:each="item : ${exam.prescription.items}"
-                                         class="rx-row"
-                                         style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: grid; grid-template-columns: minmax(0, 2fr) 90px minmax(0, 1.2fr) minmax(0, 1.2fr) 36px; gap: 10px; align-items: end;">
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Thuốc</span>
-                                            <select name="medicineId">
-                                                <option value="">-- Chọn thuốc --</option>
-                                                <option th:each="m : ${medicines}" th:value="${m.idThuoc}" th:text="${m.tenThuoc + ' (Tồn ' + m.soLuongTonKho + ')'}" th:selected="${m.idThuoc == item.idThuoc}">Paracetamol 500mg</option>
-                                            </select>
-                                        </label>
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Số lượng</span>
-                                            <input type="number" name="quantity" th:value="${item.soLuong}" min="1">
-                                        </label>
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Liều dùng</span>
-                                            <input type="text" name="dosage" th:value="${item.lieuDung}" placeholder="1 viên/lần">
-                                        </label>
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Cách dùng</span>
-                                            <input type="text" name="usage" th:value="${item.cachDung}" placeholder="Sau ăn">
-                                        </label>
-                                        <button type="button" class="btn-icon" onclick="this.closest('.rx-row').remove()" title="Xóa dòng thuốc">
-                                            <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
-                                        </button>
-                                        <label class="form-field full" style="grid-column: 1 / -1; margin-top: 4px;">
-                                            <span>Ghi chú riêng</span>
-                                            <input type="text" name="medicineNote" th:value="${item.ghiChu}" placeholder="Lưu ý khi dùng thuốc...">
-                                        </label>
-                                    </div>
+                                    <th:block th:if="${exam.hasPrescriptionItems()}">
+                                        <div th:each="item : ${exam.prescription.items}"
+                                             class="rx-row"
+                                             style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: grid; grid-template-columns: minmax(0, 2fr) 90px minmax(0, 1.2fr) minmax(0, 1.2fr) 36px; gap: 10px; align-items: end;">
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Thuốc</span>
+                                                <select name="medicineId">
+                                                    <option value="">-- Chọn thuốc --</option>
+                                                    <option th:each="m : ${medicines}" th:value="${m.idThuoc}"
+                                                            th:text="${m.tenThuoc + ' (Tồn ' + m.soLuongTonKho + ')'}"
+                                                            th:attr="data-price=${m.idThuoc == 'T001' ? 800 : (m.idThuoc == 'T002' ? 2000 : (m.idThuoc == 'T003' ? 1500 : (m.idThuoc == 'T004' ? 3000 : 4000)))}"
+                                                            th:selected="${m.idThuoc == item.idThuoc}">Paracetamol 500mg</option>
+                                                </select>
+                                            </label>
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Số lượng</span>
+                                                <input type="number" name="quantity" th:value="${item.soLuong}" min="1">
+                                            </label>
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Liều dùng</span>
+                                                <input type="text" name="dosage" th:value="${item.lieuDung}" placeholder="1 viên/lần">
+                                            </label>
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Cách dùng</span>
+                                                <input type="text" name="usage" th:value="${item.cachDung}" placeholder="Sau ăn">
+                                            </label>
+                                            <button type="button" class="btn-icon btn-remove-rx-row" title="Xóa dòng thuốc">
+                                                <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
+                                            </button>
+                                            <label class="form-field full" style="grid-column: 1 / -1; margin-top: 4px;">
+                                                <span>Ghi chú riêng</span>
+                                                <input type="text" name="medicineNote" th:value="${item.ghiChu}" placeholder="Lưu ý khi dùng thuốc...">
+                                            </label>
+                                        </div>
+                                    </th:block>
 
                                     <!-- If no prescription exists yet, start with 1 clean template row -->
-                                    <div th:unless="${exam.prescription != null and !#lists.isEmpty(exam.prescription.items)}"
-                                         class="rx-row"
-                                         style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: grid; grid-template-columns: minmax(0, 2fr) 90px minmax(0, 1.2fr) minmax(0, 1.2fr) 36px; gap: 10px; align-items: end;">
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Thuốc</span>
-                                            <select name="medicineId">
-                                                <option value="">-- Chọn thuốc --</option>
-                                                <option th:each="m : ${medicines}" th:value="${m.idThuoc}" th:text="${m.tenThuoc + ' (Tồn ' + m.soLuongTonKho + ')'}">Paracetamol 500mg</option>
-                                            </select>
-                                        </label>
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Số lượng</span>
-                                            <input type="number" name="quantity" value="1" min="1">
-                                        </label>
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Liều dùng</span>
-                                            <input type="text" name="dosage" placeholder="1 viên/lần">
-                                        </label>
-                                        <label class="form-field" style="margin: 0;">
-                                            <span>Cách dùng</span>
-                                            <input type="text" name="usage" placeholder="Sau ăn">
-                                        </label>
-                                        <button type="button" class="btn-icon" onclick="this.closest('.rx-row').remove()" title="Xóa dòng thuốc">
-                                            <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
-                                        </button>
-                                        <label class="form-field full" style="grid-column: 1 / -1; margin-top: 4px;">
-                                            <span>Ghi chú riêng</span>
-                                            <input type="text" name="medicineNote" placeholder="Lưu ý khi dùng thuốc...">
-                                        </label>
-                                    </div>
+                                    <th:block th:unless="${exam.hasPrescriptionItems()}">
+                                        <div class="rx-row"
+                                             style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: grid; grid-template-columns: minmax(0, 2fr) 90px minmax(0, 1.2fr) minmax(0, 1.2fr) 36px; gap: 10px; align-items: end;">
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Thuốc</span>
+                                                <select name="medicineId">
+                                                    <option value="">-- Chọn thuốc --</option>
+                                                    <option th:each="m : ${medicines}" th:value="${m.idThuoc}"
+                                                            th:text="${m.tenThuoc + ' (Tồn ' + m.soLuongTonKho + ')'}"
+                                                            th:attr="data-price=${m.idThuoc == 'T001' ? 800 : (m.idThuoc == 'T002' ? 2000 : (m.idThuoc == 'T003' ? 1500 : (m.idThuoc == 'T004' ? 3000 : 4000)))}">Paracetamol 500mg</option>
+                                                </select>
+                                            </label>
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Số lượng</span>
+                                                <input type="number" name="quantity" value="1" min="1">
+                                            </label>
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Liều dùng</span>
+                                                <input type="text" name="dosage" placeholder="1 viên/lần">
+                                            </label>
+                                            <label class="form-field" style="margin: 0;">
+                                                <span>Cách dùng</span>
+                                                <input type="text" name="usage" placeholder="Sau ăn">
+                                            </label>
+                                            <button type="button" class="btn-icon btn-remove-rx-row" title="Xóa dòng thuốc">
+                                                <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
+                                            </button>
+                                            <label class="form-field full" style="grid-column: 1 / -1; margin-top: 4px;">
+                                                <span>Ghi chú riêng</span>
+                                                <input type="text" name="medicineNote" placeholder="Lưu ý khi dùng thuốc...">
+                                            </label>
+                                        </div>
+                                    </th:block>
+                                </div>
+
+                                <!-- Live estimated total -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 10px 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px;">
+                                    <span style="font-size: 12px; color: #0369a1; font-weight: 600;">
+                                        <i class="fa-solid fa-calculator" style="margin-right: 4px;"></i> Tổng tiền thuốc ước tính:
+                                    </span>
+                                    <strong id="rx-estimated-total" style="font-size: 14px; color: #0284c7;" th:text="${exam.prescription != null ? #numbers.formatDecimal(exam.prescription.tongTien, 0, 'POINT', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</strong>
                                 </div>
 
                                 <div class="form-grid" style="margin-top: 14px; grid-template-columns: 160px 1fr;">
@@ -194,13 +210,13 @@
                             </div>
                             <div class="section-card-body">
                                 <div style="display: grid; gap: 10px;">
-                                    <label th:each="lt : ${labTypes}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: #fff;">
+                                    <label th:each="lab : ${labTypes}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; background: #fff;">
                                         <span style="display: flex; align-items: center; gap: 10px;">
-                                            <input type="checkbox" name="labIds" th:value="${lt.idLxn}"
-                                                   th:checked="${#lists.contains(exam.labResults.![idLxn], lt.idLxn)}" style="width: 16px; height: 16px;">
-                                            <strong th:text="${lt.tenLxn}">Công thức máu</strong>
+                                            <input type="checkbox" name="labIds" th:value="${lab.idLxn}"
+                                                   th:checked="${exam.hasLab(lab.idLxn)}" style="width: 16px; height: 16px;">
+                                            <strong th:text="${lab.tenLxn}">Công thức máu</strong>
                                         </span>
-                                        <span style="font-size: 12px; color: #0284c7; font-weight: 600;" th:text="${#numbers.formatDecimal(lt.chiPhi, 0, 'POINT', 0, 'POINT') + ' đ'}">180.000 đ</span>
+                                        <span style="font-size: 12px; color: #0284c7; font-weight: 600;" th:text="${#numbers.formatDecimal(lab.chiPhi, 0, 'POINT', 0, 'POINT') + ' đ'}">180.000 đ</span>
                                     </label>
                                 </div>
                             </div>
@@ -239,24 +255,6 @@
     </div>
 </div>
 
-<script>
-    // Dynamic add medicine row in prescription form
-    document.getElementById('btn-add-drug-row')?.addEventListener('click', function () {
-        var container = document.getElementById('prescription-rows-container');
-        var firstRow = container.querySelector('.rx-row');
-        if (firstRow) {
-            var newRow = firstRow.cloneNode(true);
-            newRow.querySelectorAll('input').forEach(function(i) {
-                if (i.name === 'quantity') i.value = '1';
-                else i.value = '';
-            });
-            newRow.querySelectorAll('select').forEach(function(s) {
-                s.selectedIndex = 0;
-            });
-            container.appendChild(newRow);
-        }
-    });
-</script>
 </body>
 </html>
 

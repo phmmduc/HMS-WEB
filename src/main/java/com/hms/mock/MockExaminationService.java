@@ -84,6 +84,10 @@ public class MockExaminationService {
         exam.setTrieuChung(dto.getTrieuChung() != null ? dto.getTrieuChung().trim() : "");
         exam.setKetLuan(dto.getKetLuan() != null ? dto.getKetLuan().trim() : "");
 
+        if (dto.getIdNv() != null && !dto.getIdNv().isBlank()) {
+            exam.setIdNv(dto.getIdNv().trim());
+        }
+
         // 1. Labs ordered
         List<String> chosenLabs = dto.getLabIds() != null ? dto.getLabIds() : Collections.emptyList();
         // Remove unselected labs for this exam
@@ -114,9 +118,12 @@ public class MockExaminationService {
                     .orElse(null);
 
             String rxId = (rx != null) ? rx.getIdDt() : store.nextPrescriptionId();
+            String docId = (dto.getIdNv() != null && !dto.getIdNv().isBlank()) ? dto.getIdNv().trim() : exam.getIdNv();
+
             if (rx == null) {
-                rx = new Prescription(rxId, examId, exam.getIdNv(), dto.getRxNgayKe() != null ? dto.getRxNgayKe() : LocalDate.now().toString(), 0L, dto.getRxGhiChu(), "Chờ cấp phát");
+                rx = new Prescription(rxId, examId, docId, dto.getRxNgayKe() != null ? dto.getRxNgayKe() : LocalDate.now().toString(), 0L, dto.getRxGhiChu(), "Chờ cấp phát");
             } else {
+                rx.setIdNv(docId);
                 rx.setNgayKe(dto.getRxNgayKe() != null ? dto.getRxNgayKe() : LocalDate.now().toString());
                 rx.setGhiChu(dto.getRxGhiChu());
             }
@@ -130,6 +137,7 @@ public class MockExaminationService {
                 String mId = medIds.get(i);
                 if (mId == null || mId.trim().isEmpty()) continue;
                 int q = (qtys != null && i < qtys.size() && qtys.get(i) != null) ? qtys.get(i) : 1;
+                if (q < 1) q = 1; // Validate quantity > 0
                 String d = (doses != null && i < doses.size()) ? doses.get(i) : "";
                 String u = (usages != null && i < usages.size()) ? usages.get(i) : "";
                 String n = (notes != null && i < notes.size()) ? notes.get(i) : "";
@@ -157,11 +165,25 @@ public class MockExaminationService {
             rx.setItems(newDetails);
             store.prescriptions.put(rxId, rx);
             exam.setPrescription(rx);
+        } else {
+            // If doctor removed all medicines
+            Prescription rx = store.prescriptions.values().stream()
+                    .filter(p -> examId.equals(p.getIdPhieukham()))
+                    .findFirst()
+                    .orElse(null);
+            if (rx != null) {
+                store.prescriptionDetails.values().removeIf(d -> rx.getIdDt().equals(d.getIdDt()));
+                rx.setItems(Collections.emptyList());
+                rx.setTongTien(0L);
+            }
         }
 
         // Set status
         if (!chosenLabs.isEmpty()) {
-            exam.setTrangThai("Chờ xét nghiệm");
+            boolean hasPendingLabs = store.labResults.values().stream()
+                    .filter(lr -> examId.equals(lr.getIdPhieukham()))
+                    .anyMatch(lr -> !"Hoàn thành".equalsIgnoreCase(lr.getTrangThai()));
+            exam.setTrangThai(hasPendingLabs ? "Chờ xét nghiệm" : "Chờ thanh toán");
         } else {
             exam.setTrangThai("Chờ thanh toán");
         }
@@ -240,6 +262,30 @@ public class MockExaminationService {
                 })
                 .sorted((a, b) -> b.getIdDt().compareTo(a.getIdDt()))
                 .collect(Collectors.toList());
+    }
+
+    public List<Examination> getExaminationsForStaff(Staff staff, String keyword, String status, String roomId) {
+        if (staff == null || !"Bác sĩ".equalsIgnoreCase(staff.getVaiTro())) {
+            return searchExaminations(keyword, status, roomId);
+        }
+
+        String docId = staff.getIdNv();
+        String docRoomId = staff.getIdPk();
+
+        return searchExaminations(keyword, status, roomId).stream()
+                .filter(ex -> (docId != null && docId.equals(ex.getIdNv()))
+                        || (docRoomId != null && docRoomId.equals(ex.getIdPk())))
+                .collect(Collectors.toList());
+    }
+
+    public boolean isDoctorAllowedToView(Staff staff, Examination exam) {
+        if (staff == null || exam == null || !"Bác sĩ".equalsIgnoreCase(staff.getVaiTro())) {
+            return true;
+        }
+        String docId = staff.getIdNv();
+        String docRoomId = staff.getIdPk();
+        return (docId != null && docId.equals(exam.getIdNv()))
+                || (docRoomId != null && docRoomId.equals(exam.getIdPk()));
     }
 }
 

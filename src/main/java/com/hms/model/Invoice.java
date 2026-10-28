@@ -59,5 +59,12 @@ public class Invoice {
     public boolean isPaid() {
         return "Đã thanh toán".equalsIgnoreCase(trangThai);
     }
+
+    public String getEffectiveDate() {
+        if (thoiGianThu != null && !thoiGianThu.isBlank()) {
+            return thoiGianThu.trim();
+        }
+        return java.time.LocalDate.now().toString();
+    }
 }
 

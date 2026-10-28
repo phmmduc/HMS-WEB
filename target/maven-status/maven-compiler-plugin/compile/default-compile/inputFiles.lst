@@ -13,7 +13,11 @@
 /Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/DoctorExamDto.java
 /Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/ExamFormDto.java
 /Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/InvoicePayDto.java
+/Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/MedicineFormDto.java
+/Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/MedicineLotFormDto.java
 /Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/PatientFormDto.java
+/Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/RevenueReportDto.java
+/Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/dto/StaffFormDto.java
 /Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/mock/MockBillingService.java
 /Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/mock/MockDataStore.java
 /Users/phmmduc/Desktop/Project/HMS-WEB/src/main/java/com/hms/mock/MockExaminationService.java

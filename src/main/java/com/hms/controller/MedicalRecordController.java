@@ -5,6 +5,8 @@ import com.hms.mock.MockPatientService;
 import com.hms.model.Examination;
 import com.hms.model.MedicalRecord;
 import com.hms.model.Patient;
+import com.hms.model.Staff;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,24 +31,31 @@ public class MedicalRecordController {
     @GetMapping
     public String index(@RequestParam(required = false) String search,
                         @RequestParam(required = false) String selectedId,
+                        HttpSession session,
                         Model model) {
-        List<Patient> patients = patientService.searchPatients(search, "all");
+        Staff curStaff = (Staff) session.getAttribute(GlobalControllerAdvice.SESSION_STAFF);
+        List<Patient> patients = patientService.getPatientsForStaff(curStaff, search, "all");
 
         Patient selectedPatient = null;
         List<MedicalRecord> records = Collections.emptyList();
         List<Examination> exams = Collections.emptyList();
 
         if (selectedId != null && !selectedId.isEmpty()) {
-            selectedPatient = patientService.getPatientById(selectedId);
-        } else if (!patients.isEmpty()) {
+            selectedPatient = patients.stream()
+                    .filter(p -> selectedId.equalsIgnoreCase(p.getIdBn()))
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (selectedPatient == null && !patients.isEmpty()) {
             selectedPatient = patients.get(0);
         }
 
         if (selectedPatient != null) {
             String pId = selectedPatient.getIdBn();
             records = patientService.getMedicalRecordsByPatient(pId);
-            exams = examinationService.getAllExaminations().stream()
+            exams = examinationService.getExaminationsForStaff(curStaff, null, null, null).stream()
                     .filter(ex -> pId.equals(ex.getIdBn()))
+                    .sorted((a, b) -> b.getIdPhieukham().compareTo(a.getIdPhieukham()))
                     .collect(Collectors.toList());
         }
 

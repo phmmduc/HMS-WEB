@@ -1,6 +1,7 @@
 package com.hms.controller;
 
 import com.hms.dto.InvoicePayDto;
+import com.hms.dto.RevenueReportDto;
 import com.hms.mock.MockBillingService;
 import com.hms.mock.MockExaminationService;
 import com.hms.model.Examination;
@@ -10,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -26,20 +28,37 @@ public class BillingController {
     }
 
     @GetMapping
-    public String index(@RequestParam(required = false) String search,
+    public String index(@RequestParam(required = false, defaultValue = "month") String view,
+                        @RequestParam(required = false) Integer year,
+                        @RequestParam(required = false) Integer month,
+                        @RequestParam(required = false) String date,
+                        @RequestParam(required = false) String selectedKey,
+                        @RequestParam(required = false) String search,
                         @RequestParam(required = false) String status,
                         Model model) {
-        List<Invoice> invoices = billingService.searchInvoices(search, status);
-        long totalPaid = billingService.calculateTotalRevenue();
-        long totalDue = billingService.calculatePendingRevenue();
+        RevenueReportDto report = billingService.getRevenueReport(view, year, month, date, selectedKey);
+        List<Invoice> invoices = billingService.filterInvoices(search, status, report.getViewType(), report.getYear(), report.getMonth(), report.getDate(), report.getSelectedKey());
 
         model.addAttribute("activeNav", "billing");
+        model.addAttribute("report", report);
         model.addAttribute("invoices", invoices);
-        model.addAttribute("totalPaid", totalPaid);
-        model.addAttribute("totalDue", totalDue);
-        model.addAttribute("totalCount", invoices.size());
+
+        model.addAttribute("view", report.getViewType());
+        model.addAttribute("year", report.getYear());
+        model.addAttribute("month", report.getMonth());
+        model.addAttribute("date", report.getDate());
+        model.addAttribute("selectedKey", report.getSelectedKey());
+
+        model.addAttribute("totalPaid", report.getTotalPaid());
+        model.addAttribute("totalDue", report.getTotalDue());
+        model.addAttribute("totalCount", report.getTotalCount());
+
         model.addAttribute("search", search);
         model.addAttribute("status", status);
+        model.addAttribute("todayDate", LocalDate.now().toString());
+
+        model.addAttribute("allYears", List.of(2026, 2025, 2024));
+        model.addAttribute("allMonths", List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
 
         model.addAttribute("payForm", new InvoicePayDto());
 
@@ -47,12 +66,34 @@ public class BillingController {
     }
 
     @PostMapping("/pay")
-    public String payInvoice(@ModelAttribute InvoicePayDto form, RedirectAttributes ra) {
+    public String payInvoice(@ModelAttribute InvoicePayDto form,
+                             @RequestParam(required = false) String view,
+                             @RequestParam(required = false) Integer year,
+                             @RequestParam(required = false) Integer month,
+                             @RequestParam(required = false) String selectedKey,
+                             RedirectAttributes ra) {
         boolean ok = billingService.payInvoice(form.getIdHoadon(), form.getPhuongThucTt(), form.getThoiGianThu());
         if (ok) {
             ra.addFlashAttribute("successMessage", "Đã thu thành công hóa đơn " + form.getIdHoadon() + " (" + form.getPhuongThucTt() + ").");
         }
-        return "redirect:/billing";
+        StringBuilder redirectUrl = new StringBuilder("redirect:/billing");
+        boolean hasParam = false;
+        if (view != null && !view.isBlank()) {
+            redirectUrl.append(hasParam ? "&" : "?").append("view=").append(view);
+            hasParam = true;
+        }
+        if (year != null) {
+            redirectUrl.append(hasParam ? "&" : "?").append("year=").append(year);
+            hasParam = true;
+        }
+        if (month != null) {
+            redirectUrl.append(hasParam ? "&" : "?").append("month=").append(month);
+            hasParam = true;
+        }
+        if (selectedKey != null && !selectedKey.isBlank()) {
+            redirectUrl.append(hasParam ? "&" : "?").append("selectedKey=").append(selectedKey);
+        }
+        return redirectUrl.toString();
     }
 
     @GetMapping("/print/{id}")

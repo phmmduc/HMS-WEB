@@ -200,7 +200,7 @@
                     <span>Chọn bệnh nhân *</span>
                     <select name="idBn" required>
                         <option value="">-- Chọn bệnh nhân --</option>
-                        <option th:each="p : ${patients}" th:value="${p.idBn}" th:text="${p.hoTen + ' (' + p.idBn + ') · ' + p.phoneDisplay}">Nguyễn Minh Anh (BN001)</option>
+                        <option th:each="p : ${allPatients != null ? allPatients : patients}" th:value="${p.idBn}" th:text="${p.hoTen + ' (' + p.idBn + ') · ' + p.phoneDisplay}">Nguyễn Minh Anh (BN001)</option>
                     </select>
                 </label>
 
@@ -216,13 +216,18 @@
                     <span>Bác sĩ phụ trách *</span>
                     <select name="idNv" required>
                         <option value="">-- Chọn bác sĩ --</option>
-                        <option th:each="d : ${doctors}" th:value="${d.idNv}" th:text="${d.hoTen}">BS. Nguyễn Hoàng An</option>
+                        <option th:each="d : ${doctors}" th:value="${d.idNv}" th:text="${d.hoTen + ' (' + d.idNv + ')'}" th:selected="${currentStaff != null && currentStaff.idNv == d.idNv}">BS. Nguyễn Hoàng An</option>
                     </select>
                 </label>
 
                 <label class="form-field">
-                    <span>Ngày khám</span>
+                    <span>Ngày khám *</span>
                     <input type="date" name="ngayDky" th:value="${todayDate}" required>
+                </label>
+
+                <label class="form-field">
+                    <span>Giờ tiếp đón / khám</span>
+                    <input type="time" name="thoiGianKham" value="08:00">
                 </label>
 
                 <label class="form-field">

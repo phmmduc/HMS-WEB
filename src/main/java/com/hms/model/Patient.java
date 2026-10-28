@@ -75,5 +75,15 @@ public class Patient {
     public String getPhoneDisplay() {
         return (sdt != null && !sdt.isEmpty()) ? String.join(", ", sdt) : "—";
     }
+
+    public Integer getTuoi() {
+        if (ngaySinh == null || ngaySinh.trim().isEmpty()) return null;
+        try {
+            java.time.LocalDate birth = java.time.LocalDate.parse(ngaySinh.trim());
+            return java.time.Period.between(birth, java.time.LocalDate.now()).getYears();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
 

@@ -8,13 +8,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/app.js}" defer></script>
     <style>
         /* Modal and dropdown helper utilities */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(4px); z-index: 50; display: none; align-items: center; justify-content: center;
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center;
+            padding: 16px;
         }
-        .modal-overlay.active { display: flex; }
+        .modal-overlay.active { display: flex !important; }
+        .modal-card, .modal-container {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1001;
+        }
         .tab-btn.active {
             border-bottom: 2px solid #0284c7; color: #0284c7; font-weight: 700;
         }
@@ -39,36 +50,6 @@
         </main>
     </div>
 </div>
-
-<script>
-    // Minimal vanilla JS for client-side UX
-    document.addEventListener('DOMContentLoaded', function () {
-        // Auto-dismiss toasts after 4 seconds
-        setTimeout(function () {
-            document.querySelectorAll('.hms-toast').forEach(function(el) {
-                el.style.opacity = '0';
-                el.style.transition = 'opacity 0.5s ease';
-                setTimeout(function() { el.remove(); }, 500);
-            });
-        }, 4000);
-
-        // Simple modal opener/closer by data attribute
-        document.querySelectorAll('[data-open-modal]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var modalId = btn.getAttribute('data-open-modal');
-                var modal = document.getElementById(modalId);
-                if (modal) modal.classList.add('active');
-            });
-        });
-
-        document.querySelectorAll('[data-close-modal]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var modal = btn.closest('.modal-overlay');
-                if (modal) modal.classList.remove('active');
-            });
-        });
-    });
-</script>
 </body>
 </html>
 

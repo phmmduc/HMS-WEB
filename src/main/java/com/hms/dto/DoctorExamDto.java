@@ -5,6 +5,7 @@ import java.util.List;
 
 public class DoctorExamDto {
     private String idPhieukham;
+    private String idNv;
     private String thoiGianKham;
     private String idCd;
     private String trieuChung;
@@ -24,6 +25,9 @@ public class DoctorExamDto {
 
     public String getIdPhieukham() { return idPhieukham; }
     public void setIdPhieukham(String idPhieukham) { this.idPhieukham = idPhieukham; }
+
+    public String getIdNv() { return idNv; }
+    public void setIdNv(String idNv) { this.idNv = idNv; }
 
     public String getThoiGianKham() { return thoiGianKham; }
     public void setThoiGianKham(String thoiGianKham) { this.thoiGianKham = thoiGianKham; }

@@ -116,5 +116,24 @@ public class MockPatientService {
                 .sorted((a, b) -> b.getNgayTao().compareTo(a.getNgayTao()))
                 .collect(Collectors.toList());
     }
+
+    public List<Patient> getPatientsForStaff(com.hms.model.Staff staff, String keyword, String status) {
+        if (staff == null || !"Bác sĩ".equalsIgnoreCase(staff.getVaiTro())) {
+            return searchPatients(keyword, status);
+        }
+
+        String docId = staff.getIdNv();
+        String docRoomId = staff.getIdPk();
+
+        Set<String> doctorPatientIds = store.examinations.values().stream()
+                .filter(ex -> (docId != null && docId.equals(ex.getIdNv()))
+                        || (docRoomId != null && docRoomId.equals(ex.getIdPk())))
+                .map(com.hms.model.Examination::getIdBn)
+                .collect(Collectors.toSet());
+
+        return searchPatients(keyword, status).stream()
+                .filter(p -> doctorPatientIds.contains(p.getIdBn()))
+                .collect(Collectors.toList());
+    }
 }
 

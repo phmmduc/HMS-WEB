@@ -30,12 +30,17 @@ public class MockDataStore {
     public final Map<String, PrescriptionDetail> prescriptionDetails = new ConcurrentHashMap<>();
     public final Map<String, Invoice> invoices = new ConcurrentHashMap<>();
 
-    private final AtomicLong patientSeq = new AtomicLong(7);
-    private final AtomicLong examSeq = new AtomicLong(6);
-    private final AtomicLong invoiceSeq = new AtomicLong(4);
-    private final AtomicLong rxSeq = new AtomicLong(3);
-    private final AtomicLong rxDetailSeq = new AtomicLong(4);
-    private final AtomicLong labResultSeq = new AtomicLong(3);
+    private final AtomicLong patientSeq = new AtomicLong(8);
+    private final AtomicLong examSeq = new AtomicLong(10);
+    private final AtomicLong invoiceSeq = new AtomicLong(22);
+    private final AtomicLong rxSeq = new AtomicLong(6);
+    private final AtomicLong rxDetailSeq = new AtomicLong(9);
+    private final AtomicLong labResultSeq = new AtomicLong(5);
+    private final AtomicLong staffSeq = new AtomicLong(12);
+    private final AtomicLong specialtySeq = new AtomicLong(5);
+    private final AtomicLong roomSeq = new AtomicLong(5);
+    private final AtomicLong medicineSeq = new AtomicLong(7);
+    private final AtomicLong lotSeq = new AtomicLong(9);
 
     @PostConstruct
     public void init() {
@@ -79,12 +84,17 @@ public class MockDataStore {
         }
 
         // 3. Staff Members
-        staffMembers.put("NV001", new Staff("NV001", "BS. Nguyễn Hoàng An", "Nam", "1980-02-12", List.of("0903001001"), "an.nguyen@hms.local", "Bác sĩ", "Đang làm việc", "Thạc sĩ · Nội tổng hợp"));
-        staffMembers.put("NV002", new Staff("NV002", "BS. Trần Mai Phương", "Nữ", "1985-09-21", List.of("0903001002"), "phuong.tran@hms.local", "Bác sĩ", "Đang làm việc", "Bác sĩ CKI · Tim mạch"));
+        staffMembers.put("NV001", new Staff("NV001", "BS. Nguyễn Hoàng An", "Nam", "1980-02-12", List.of("0903001001"), "an.nguyen@hms.local", "Bác sĩ", "Đang làm việc", "Thạc sĩ · Nội tổng hợp", "PK01"));
+        staffMembers.put("NV002", new Staff("NV002", "BS. Trần Mai Phương", "Nữ", "1985-09-21", List.of("0903001002"), "phuong.tran@hms.local", "Bác sĩ", "Đang làm việc", "Bác sĩ CKI · Tim mạch", "PK02"));
         staffMembers.put("NV003", new Staff("NV003", "Điều dưỡng Lê Thu Trang", "Nữ", "1992-06-07", List.of("0903001003"), "trang.le@hms.local", "Y tá", "Đang làm việc", "Điều dưỡng đại học"));
         staffMembers.put("NV004", new Staff("NV004", "DS. Phạm Quốc Huy", "Nam", "1988-04-18", List.of("0903001004"), "huy.pham@hms.local", "Dược sĩ", "Đang làm việc", "Dược sĩ đại học"));
         staffMembers.put("NV005", new Staff("NV005", "Nguyễn Hải Yến", "Nữ", "1991-12-03", List.of("0903001005"), "yen.nguyen@hms.local", "Thu ngân", "Đang làm việc", "Chuyên viên viện phí"));
         staffMembers.put("NV006", new Staff("NV006", "Đỗ Văn Khánh", "Nam", "1978-08-13", List.of("0903001006"), "khanh.do@hms.local", "Quản lý", "Đang làm việc", "Ban Giám đốc"));
+        staffMembers.put("NV007", new Staff("NV007", "Điều dưỡng Hoàng Minh Thảo", "Nữ", "1994-03-15", List.of("0903001007"), "thao.hoang@hms.local", "Y tá", "Đang làm việc", "Cử nhân điều dưỡng"));
+        staffMembers.put("NV008", new Staff("NV008", "DS. Vũ Thị Mai", "Nữ", "1990-11-20", List.of("0903001008"), "mai.vu@hms.local", "Dược sĩ", "Đang làm việc", "Dược sĩ lâm sàng"));
+        staffMembers.put("NV009", new Staff("NV009", "Đỗ Hoàng Long", "Nam", "1993-05-10", List.of("0903001009"), "long.do@hms.local", "Thu ngân", "Đang làm việc", "Kế toán viên viện phí"));
+        staffMembers.put("NV010", new Staff("NV010", "Trần Đình Trọng", "Nam", "1982-10-05", List.of("0903001010"), "trong.tran@hms.local", "Quản lý", "Đang làm việc", "Phó Giám đốc điều hành"));
+        staffMembers.put("NV011", new Staff("NV011", "BS. Lê Hoàng Nam", "Nam", "1989-07-25", List.of("0903001011"), "nam.le@hms.local", "Bác sĩ", "Đang làm việc", "Bác sĩ CKI · Nhi khoa", "PK04"));
 
         // 4. Lab Types
         labTypes.put("XN001", new LabType("XN001", "Công thức máu", 180000L, "Hoạt động"));
@@ -106,44 +116,57 @@ public class MockDataStore {
         patients.put("BN004", new Patient("BN004", "Phạm Đức Long", "001190009876", "1990-12-08", "Nam", List.of("0977654321"), "Thanh Xuân, Hà Nội", today.minusDays(2).toString(), "Đang theo dõi"));
         patients.put("BN005", new Patient("BN005", "Đỗ Ngọc Linh", "001205001122", "2005-01-25", "Nữ", List.of("0966123456"), "Long Biên, Hà Nội", today.minusDays(3).toString(), "Ổn định"));
         patients.put("BN006", new Patient("BN006", "Vũ Thành Nam", "001185009911", "1985-09-30", "Nam", List.of("0944112233"), "Nam Từ Liêm, Hà Nội", today.minusDays(4).toString(), "Ổn định"));
+        patients.put("BN007", new Patient("BN007", "Hoàng Thu Trang", "001205008899", "1995-05-18", "Nữ", List.of("0988776655"), "Cầu Giấy, Hà Nội", today.minusDays(5).toString(), "Ổn định"));
 
         // Relatives
         PatientRelative rel1 = new PatientRelative("NT001", "BN001", "Nguyễn Văn Minh", "Bố", "Nam", List.of("0909988776"));
         PatientRelative rel2 = new PatientRelative("NT002", "BN003", "Lê Thị Hương", "Mẹ", "Nữ", List.of("0901234432"));
+        PatientRelative rel3 = new PatientRelative("NT003", "BN007", "Hoàng Văn Hùng", "Bố", "Nam", List.of("0911223344"));
         relatives.put("NT001", rel1);
         relatives.put("NT002", rel2);
+        relatives.put("NT003", rel3);
         patients.get("BN001").setRelative(rel1);
         patients.get("BN003").setRelative(rel2);
+        patients.get("BN007").setRelative(rel3);
 
         // Insurance
         HealthInsurance bh1 = new HealthInsurance("BHYT001", "BN001", "HN4010123456789", 80, today.minusDays(180).toString(), today.plusDays(185).toString(), "Trạm y tế phường Dịch Vọng", "Hộ gia đình");
         HealthInsurance bh2 = new HealthInsurance("BHYT002", "BN002", "HN4010987654321", 95, today.minusDays(365).toString(), today.plusDays(30).toString(), "Bệnh viện quận Hà Đông", "Người lao động");
         HealthInsurance bh3 = new HealthInsurance("BHYT003", "BN005", "HN4010112233445", 100, today.minusDays(90).toString(), today.plusDays(275).toString(), "Bệnh viện Nhi Trung ương", "Trẻ em");
+        HealthInsurance bh4 = new HealthInsurance("BHYT004", "BN007", "HN4010556677889", 80, today.minusDays(120).toString(), today.plusDays(245).toString(), "Bệnh viện E Hà Nội", "Người lao động");
         insurances.put("BHYT001", bh1);
         insurances.put("BHYT002", bh2);
         insurances.put("BHYT003", bh3);
+        insurances.put("BHYT004", bh4);
         patients.get("BN001").setInsurance(bh1);
         patients.get("BN002").setInsurance(bh2);
         patients.get("BN005").setInsurance(bh3);
+        patients.get("BN007").setInsurance(bh4);
 
         // Medical Records
         medicalRecords.put("BA001", new MedicalRecord("BA001", "BN001", today.minusDays(60).toString(), "Viêm mũi dị ứng theo mùa", "Đang theo dõi"));
         medicalRecords.put("BA002", new MedicalRecord("BA002", "BN002", today.minusDays(120).toString(), "Tăng huyết áp nhẹ", "Đang theo dõi"));
         medicalRecords.put("BA003", new MedicalRecord("BA003", "BN004", today.minusDays(30).toString(), "Chưa ghi nhận bất thường", "Mở"));
+        medicalRecords.put("BA004", new MedicalRecord("BA004", "BN006", today.minusDays(45).toString(), "Tăng huyết áp nhẹ, rối loạn lipid", "Đang theo dõi"));
+        medicalRecords.put("BA005", new MedicalRecord("BA005", "BN007", today.minusDays(10).toString(), "Viêm họng tái phát nhiều lần", "Đang theo dõi"));
 
         // 7. Medicines & Lots
-        medicines.put("T001", new Medicine("T001", "Paracetamol 500 mg", "DHG Pharma", false, 420, "viên"));
-        medicines.put("T002", new Medicine("T002", "Amoxicillin 500 mg", "Imexpharm", true, 180, "viên"));
-        medicines.put("T003", new Medicine("T003", "Cetirizine 10 mg", "Stella", false, 95, "viên"));
-        medicines.put("T004", new Medicine("T004", "Amlodipine 5 mg", "GSK", true, 70, "viên"));
-        medicines.put("T005", new Medicine("T005", "Oresol", "Pharmedic", false, 24, "gói"));
+        medicines.put("T001", new Medicine("T001", "Paracetamol 500 mg", "Paracetamol", "500 mg", "DHG Pharma", false, 420, "viên", 800L, "Đang kinh doanh"));
+        medicines.put("T002", new Medicine("T002", "Amoxicillin 500 mg", "Amoxicillin", "500 mg", "Imexpharm", true, 180, "viên", 2000L, "Đang kinh doanh"));
+        medicines.put("T003", new Medicine("T003", "Cetirizine 10 mg", "Cetirizine 2HCl", "10 mg", "Stella", false, 95, "viên", 1500L, "Đang kinh doanh"));
+        medicines.put("T004", new Medicine("T004", "Amlodipine 5 mg", "Amlodipine besylate", "5 mg", "GSK", true, 70, "viên", 3000L, "Đang kinh doanh"));
+        medicines.put("T005", new Medicine("T005", "Oresol", "Glucose, Natri & Kali", "27.9 g/gói", "Pharmedic", false, 24, "gói", 4000L, "Đang kinh doanh"));
+        medicines.put("T006", new Medicine("T006", "Vitamin C 500 mg", "Acid ascorbic", "500 mg", "Dược Hậu Giang", false, 0, "viên", 1200L, "Đang kinh doanh"));
 
-        medicineLots.put("LO001", new MedicineLot("LO001", "T001", "PAR-2608", today.plusDays(220).toString(), 500, 300, 450L, 800L));
-        medicineLots.put("LO002", new MedicineLot("LO002", "T001", "PAR-2610", today.plusDays(360).toString(), 200, 120, 470L, 800L));
-        medicineLots.put("LO003", new MedicineLot("LO003", "T002", "AMX-2605", today.plusDays(140).toString(), 300, 180, 1200L, 2000L));
-        medicineLots.put("LO004", new MedicineLot("LO004", "T003", "CET-2609", today.plusDays(45).toString(), 120, 95, 900L, 1500L));
-        medicineLots.put("LO005", new MedicineLot("LO005", "T004", "AML-2604", today.plusDays(310).toString(), 100, 70, 1800L, 3000L));
-        medicineLots.put("LO006", new MedicineLot("LO006", "T005", "ORS-2607", today.plusDays(28).toString(), 60, 24, 2500L, 4000L));
+        medicineLots.put("LO001", new MedicineLot("LO001", "T001", "PAR-2608", today.plusDays(220).toString(), 500, 300, 450L, 800L, today.minusDays(140).toString(), today.minusDays(145).toString(), "Công ty Dược phẩm TW1", "Hoạt động"));
+        medicineLots.put("LO002", new MedicineLot("LO002", "T001", "PAR-2610", today.plusDays(360).toString(), 200, 120, 470L, 800L, today.minusDays(50).toString(), today.minusDays(60).toString(), "DHG Pharma Chi nhánh Hà Nội", "Hoạt động"));
+        medicineLots.put("LO003", new MedicineLot("LO003", "T002", "AMX-2605", today.plusDays(140).toString(), 300, 180, 1200L, 2000L, today.minusDays(220).toString(), today.minusDays(225).toString(), "Imexpharm Phân phối", "Hoạt động"));
+        medicineLots.put("LO004", new MedicineLot("LO004", "T003", "CET-2609", today.plusDays(45).toString(), 120, 95, 900L, 1500L, today.minusDays(310).toString(), today.minusDays(320).toString(), "Stella Dược liệu", "Hoạt động"));
+        medicineLots.put("LO005", new MedicineLot("LO005", "T004", "AML-2604", today.plusDays(310).toString(), 100, 70, 1800L, 3000L, today.minusDays(50).toString(), today.minusDays(55).toString(), "Dược phẩm GSK Việt Nam", "Hoạt động"));
+        medicineLots.put("LO006", new MedicineLot("LO006", "T005", "ORS-2607", today.plusDays(28).toString(), 60, 24, 2500L, 4000L, today.minusDays(330).toString(), today.minusDays(335).toString(), "Công ty CP Pharmedic", "Hoạt động"));
+        // Lô hết hạn để phục vụ chức năng C (Xóa/loại bỏ lô thuốc hết hạn)
+        medicineLots.put("LO007", new MedicineLot("LO007", "T001", "PAR-2512", today.minusDays(15).toString(), 100, 15, 420L, 800L, today.minusDays(370).toString(), today.minusDays(380).toString(), "Công ty Dược phẩm TW1", "Hoạt động"));
+        medicineLots.put("LO008", new MedicineLot("LO008", "T002", "AMX-2510", today.minusDays(60).toString(), 50, 50, 1100L, 2000L, today.minusDays(420).toString(), today.minusDays(425).toString(), "Imexpharm Phân phối", "Hoạt động"));
         for (MedicineLot lot : medicineLots.values()) {
             Medicine m = medicines.get(lot.getIdThuoc());
             if (m != null) {
@@ -157,15 +180,27 @@ public class MockDataStore {
         ex1.setKetLuan("Viêm mũi dị ứng cấp, chỉ định dùng thuốc kháng histamin.");
         Examination ex2 = new Examination("PKM002", "BN002", "PK02", "NV002", "BA002", "CD002", today.toString(), "09:10", "Đau đầu nhẹ, huyết áp 145/90", 180000L, "Chờ thanh toán");
         ex2.setKetLuan("Tăng huyết áp vô căn độ 1, duy trì thuốc hạ áp hàng ngày.");
-        Examination ex3 = new Examination("PKM003", "BN003", "PK01", "NV001", null, null, today.toString(), "", "Ho khan, rát họng", 150000L, "Chờ khám");
-        Examination ex4 = new Examination("PKM004", "BN004", "PK03", "NV002", "BA003", null, today.toString(), "", "Mệt mỏi kéo dài, khát nước", 150000L, "Chờ xét nghiệm");
-        Examination ex5 = new Examination("PKM005", "BN005", "PK04", "NV001", null, null, today.toString(), "", "Sốt nhẹ 38 độ, biếng ăn", 120000L, "Chờ khám");
+        Examination ex3 = new Examination("PKM003", "BN003", "PK01", "NV001", null, null, today.toString(), "09:30", "Ho khan, rát họng", 150000L, "Chờ khám");
+        Examination ex4 = new Examination("PKM004", "BN004", "PK02", "NV002", "BA003", null, today.toString(), "10:00", "Mệt mỏi kéo dài, khát nước", 150000L, "Chờ xét nghiệm");
+        Examination ex5 = new Examination("PKM005", "BN005", "PK04", "NV011", null, null, today.toString(), "10:15", "Sốt nhẹ 38 độ, biếng ăn", 120000L, "Chờ khám");
+        Examination ex6 = new Examination("PKM006", "BN001", "PK01", "NV001", "BA001", "CD001", today.minusDays(30).toString(), "14:00", "Tái khám hô hấp, nghẹt mũi về đêm", 150000L, "Hoàn tất");
+        ex6.setKetLuan("Viêm mũi xoang dị ứng đã ổn định, duy trì vệ sinh mũi họng.");
+        Examination ex7 = new Examination("PKM007", "BN002", "PK02", "NV002", "BA002", "CD002", today.minusDays(60).toString(), "08:45", "Tái khám tăng huyết áp định kỳ", 180000L, "Hoàn tất");
+        ex7.setKetLuan("Huyết áp kiểm soát ổn định 125/80 mmHg, tim đều, không phù.");
+        Examination ex8 = new Examination("PKM008", "BN006", "PK02", "NV002", "BA004", "CD002", today.toString(), "10:30", "Tức ngực trái nhẹ khi gắng sức, hồi hộp", 180000L, "Đã khám");
+        ex8.setKetLuan("Tăng huyết áp độ 1, rối loạn lipid máu, chỉ định thuốc hạ áp và điều chỉnh chế độ ăn.");
+        Examination ex9 = new Examination("PKM009", "BN007", "PK01", "NV001", "BA005", "CD001", today.toString(), "11:00", "Sốt 38.3 độ, đau rát họng, nuốt vướng", 150000L, "Đã khám");
+        ex9.setKetLuan("Viêm họng cấp, chỉ định giảm sốt, kháng sinh và bù nước điện giải.");
 
         examinations.put("PKM001", ex1);
         examinations.put("PKM002", ex2);
         examinations.put("PKM003", ex3);
         examinations.put("PKM004", ex4);
         examinations.put("PKM005", ex5);
+        examinations.put("PKM006", ex6);
+        examinations.put("PKM007", ex7);
+        examinations.put("PKM008", ex8);
+        examinations.put("PKM009", ex9);
 
         // 9. Prescriptions & Details
         Prescription dt1 = new Prescription("DT001", "PKM001", "NV001", today.toString(), 23000L, "Uống sau khi ăn, tái khám sau 7 ngày", "Chờ cấp phát");
@@ -190,21 +225,99 @@ public class MockDataStore {
         prescriptions.put("DT002", dt2);
         ex2.setPrescription(dt2);
 
+        Prescription dt3 = new Prescription("DT003", "PKM006", "NV001", today.minusDays(30).toString(), 15500L, "Uống sau ăn 30 phút, nghỉ ngơi hợp lý", "Đã cấp phát");
+        PrescriptionDetail ctdt4 = new PrescriptionDetail("CT004", "DT003", "T001", 10, "1 viên khi sốt", "Uống sau ăn", "Cách 6 tiếng", 800L);
+        PrescriptionDetail ctdt5 = new PrescriptionDetail("CT005", "DT003", "T003", 5, "1 viên/ngày", "Uống buổi tối sau ăn", "Dùng 5 ngày", 1500L);
+        ctdt4.setTenThuoc(medicines.get("T001").getTenThuoc());
+        ctdt4.setDonVi(medicines.get("T001").getDonVi());
+        ctdt5.setTenThuoc(medicines.get("T003").getTenThuoc());
+        ctdt5.setDonVi(medicines.get("T003").getDonVi());
+        dt3.setItems(new ArrayList<>(List.of(ctdt4, ctdt5)));
+        prescriptionDetails.put("CT004", ctdt4);
+        prescriptionDetails.put("CT005", ctdt5);
+        prescriptions.put("DT003", dt3);
+        ex6.setPrescription(dt3);
+
+        Prescription dt4 = new Prescription("DT004", "PKM008", "NV002", today.toString(), 30000L, "Uống cố định 8h sáng hàng ngày", "Chờ cấp phát");
+        PrescriptionDetail ctdt6 = new PrescriptionDetail("CT006", "DT004", "T004", 10, "1 viên/ngày", "Uống sau ăn sáng", "Đo huyết áp trước khi uống", 3000L);
+        ctdt6.setTenThuoc(medicines.get("T004").getTenThuoc());
+        ctdt6.setDonVi(medicines.get("T004").getDonVi());
+        dt4.setItems(new ArrayList<>(List.of(ctdt6)));
+        prescriptionDetails.put("CT006", ctdt6);
+        prescriptions.put("DT004", dt4);
+        ex8.setPrescription(dt4);
+
+        Prescription dt5 = new Prescription("DT005", "PKM009", "NV001", today.toString(), 48000L, "Uống sau ăn, uống nhiều nước ấm", "Chờ cấp phát");
+        PrescriptionDetail ctdt7 = new PrescriptionDetail("CT007", "DT005", "T002", 20, "2 viên/lần, ngày 2 lần", "Uống sau ăn sáng, tối", "Dùng đủ liều 5 ngày", 2000L);
+        PrescriptionDetail ctdt8 = new PrescriptionDetail("CT008", "DT005", "T001", 10, "1 viên khi sốt > 38.5°C", "Uống với nước ấm", "Cách 6 tiếng", 800L);
+        ctdt7.setTenThuoc(medicines.get("T002").getTenThuoc());
+        ctdt7.setDonVi(medicines.get("T002").getDonVi());
+        ctdt8.setTenThuoc(medicines.get("T001").getTenThuoc());
+        ctdt8.setDonVi(medicines.get("T001").getDonVi());
+        dt5.setItems(new ArrayList<>(List.of(ctdt7, ctdt8)));
+        prescriptionDetails.put("CT007", ctdt7);
+        prescriptionDetails.put("CT008", ctdt8);
+        prescriptions.put("DT005", dt5);
+        ex9.setPrescription(dt5);
+
         // 10. Lab Results
         LabResult kq1 = new LabResult("KQ001", "PKM001", "XN001", "RBC 4.5, WBC 7.2, PLT 240 (Bình thường)", "Chưa ghi nhận bất thường về huyết học", today.toString(), "Hoàn thành");
         LabResult kq2 = new LabResult("KQ002", "PKM004", "XN002", "", "", "", "Chờ lấy mẫu");
+        LabResult kq3 = new LabResult("KQ003", "PKM007", "XN003", "AST 22, ALT 25 (Bình thường)", "Chức năng gan bình thường, nhịp xoang đều", today.minusDays(60).toString(), "Hoàn thành");
+        LabResult kq4 = new LabResult("KQ004", "PKM008", "XN001", "RBC 4.6, WBC 6.5, PLT 215 (Bình thường)", "Công thức máu bình thường, không thiếu máu", today.toString(), "Hoàn thành");
         labResults.put("KQ001", kq1);
         labResults.put("KQ002", kq2);
+        labResults.put("KQ003", kq3);
+        labResults.put("KQ004", kq4);
         ex1.getLabResults().add(kq1);
         ex4.getLabResults().add(kq2);
+        ex7.getLabResults().add(kq3);
+        ex8.getLabResults().add(kq4);
 
         // 11. Invoices
         Invoice hd1 = new Invoice("HD001", "PKM001", 353000L, "Khám + xét nghiệm + thuốc", "Chuyển khoản", today.toString(), "Đã thanh toán");
         Invoice hd2 = new Invoice("HD002", "PKM002", 198000L, "Khám + thuốc", "Tiền mặt", "", "Chưa thanh toán");
         Invoice hd3 = new Invoice("HD003", "PKM004", 240000L, "Khám + xét nghiệm", "", "", "Chưa thanh toán");
+        Invoice hd4 = new Invoice("HD004", "PKM001", 520000L, "Khám chuyên khoa + Xét nghiệm máu", "Chuyển khoản", today.minusDays(3).toString(), "Đã thanh toán");
+        Invoice hd5 = new Invoice("HD005", "PKM002", 310000L, "Khám Tim mạch + Điện tâm đồ", "Tiền mặt", today.minusDays(8).toString(), "Đã thanh toán");
+        Invoice hd6 = new Invoice("HD006", "PKM003", 150000L, "Khám Nội tổng hợp", "Tiền mặt", today.minusDays(13).toString(), "Đã thanh toán");
+        Invoice hd7 = new Invoice("HD007", "PKM005", 680000L, "Khám Nhi khoa + Thuốc điều trị", "Chuyển khoản", today.minusDays(18).toString(), "Đã thanh toán");
+        Invoice hd8 = new Invoice("HD008", "PKM001", 450000L, "Khám tổng quát đầu tháng", "Chuyển khoản", today.minusDays(23).toString(), "Đã thanh toán");
+        Invoice hd9 = new Invoice("HD009", "PKM002", 2450000L, "Tổng kết viện phí tháng 9", "Chuyển khoản", "2026-09-18", "Đã thanh toán");
+        Invoice hd10 = new Invoice("HD010", "PKM001", 1850000L, "Tổng kết viện phí tháng 8", "Tiền mặt", "2026-08-22", "Đã thanh toán");
+        Invoice hd11 = new Invoice("HD011", "PKM003", 3200000L, "Tổng kết viện phí tháng 7", "Chuyển khoản", "2026-07-14", "Đã thanh toán");
+        Invoice hd12 = new Invoice("HD012", "PKM004", 2100000L, "Tổng kết viện phí tháng 6", "Chuyển khoản", "2026-06-11", "Đã thanh toán");
+        Invoice hd13 = new Invoice("HD013", "PKM005", 1950000L, "Tổng kết viện phí tháng 5", "Tiền mặt", "2026-05-09", "Đã thanh toán");
+        Invoice hd14 = new Invoice("HD014", "PKM001", 2800000L, "Tổng kết viện phí tháng 4", "Chuyển khoản", "2026-04-16", "Đã thanh toán");
+        Invoice hd15 = new Invoice("HD015", "PKM002", 3100000L, "Tổng kết viện phí tháng 3", "Chuyển khoản", "2026-03-24", "Đã thanh toán");
+        Invoice hd16 = new Invoice("HD016", "PKM003", 1600000L, "Tổng kết viện phí tháng 2", "Tiền mặt", "2026-02-19", "Đã thanh toán");
+        Invoice hd17 = new Invoice("HD017", "PKM005", 2300000L, "Tổng kết viện phí tháng 1", "Chuyển khoản", "2026-01-12", "Đã thanh toán");
+        Invoice hd18 = new Invoice("HD018", "PKM006", 165500L, "Khám + thuốc đợt trước", "Chuyển khoản", today.minusDays(30).toString(), "Đã thanh toán");
+        Invoice hd19 = new Invoice("HD019", "PKM007", 400000L, "Khám Tim mạch + xét nghiệm gan", "Tiền mặt", today.minusDays(60).toString(), "Đã thanh toán");
+        Invoice hd20 = new Invoice("HD020", "PKM008", 390000L, "Khám + xét nghiệm + thuốc", "Tiền mặt", "", "Chưa thanh toán");
+        Invoice hd21 = new Invoice("HD021", "PKM009", 198000L, "Khám + thuốc điều trị", "Chuyển khoản", "", "Chưa thanh toán");
+
         invoices.put("HD001", hd1);
         invoices.put("HD002", hd2);
         invoices.put("HD003", hd3);
+        invoices.put("HD004", hd4);
+        invoices.put("HD005", hd5);
+        invoices.put("HD006", hd6);
+        invoices.put("HD007", hd7);
+        invoices.put("HD008", hd8);
+        invoices.put("HD009", hd9);
+        invoices.put("HD010", hd10);
+        invoices.put("HD011", hd11);
+        invoices.put("HD012", hd12);
+        invoices.put("HD013", hd13);
+        invoices.put("HD014", hd14);
+        invoices.put("HD015", hd15);
+        invoices.put("HD016", hd16);
+        invoices.put("HD017", hd17);
+        invoices.put("HD018", hd18);
+        invoices.put("HD019", hd19);
+        invoices.put("HD020", hd20);
+        invoices.put("HD021", hd21);
 
         // Link patient names & extra info
         linkAll();
@@ -427,6 +540,26 @@ public class MockDataStore {
 
     public String nextLabResultId() {
         return String.format("KQ%03d", labResultSeq.getAndIncrement());
+    }
+
+    public String nextStaffId() {
+        return String.format("NV%03d", staffSeq.getAndIncrement());
+    }
+
+    public String nextSpecialtyId() {
+        return String.format("CK%02d", specialtySeq.getAndIncrement());
+    }
+
+    public String nextRoomId() {
+        return String.format("PK%02d", roomSeq.getAndIncrement());
+    }
+
+    public String nextMedicineId() {
+        return String.format("T%03d", medicineSeq.getAndIncrement());
+    }
+
+    public String nextLotId() {
+        return String.format("LO%03d", lotSeq.getAndIncrement());
     }
 }
 
