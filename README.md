@@ -1,95 +1,120 @@
-# MediCore HMS — Hospital Management System
+# MediCore HMS — Hospital Management System (Spring Boot + Thymeleaf Edition)
 
-Bộ ứng dụng quản lý bệnh viện mẫu dùng HTML5, Tailwind CSS qua CDN, JavaScript thuần và Supabase JS v2. Có dữ liệu mẫu để chạy ngay trong trình duyệt; khi cấu hình Supabase, xác thực và phân quyền dựa trên PostgreSQL RLS.
+Hệ thống Quản lý Bệnh viện MediCore HMS được chuyển đổi sang nền tảng **Java Spring Boot 3.x + Thymeleaf** (Frontend-only với Mock In-Memory Services), giữ nguyên phong cách thiết kế y tế hiện đại, chuyên nghiệp với Tailwind CSS và Font Awesome.
 
-## 1. Cấu trúc
+---
+
+## 1. Công nghệ & Kiến trúc
+
+- **Ngôn ngữ:** Java 21+
+- **Framework:** Spring Boot 3.3.5 (Spring MVC, Thymeleaf, Spring Boot DevTools)
+- **Giao diện:** Thymeleaf Templates, Tailwind CSS (CDN), Font Awesome 6.4
+- **Dữ liệu:** In-Memory Mock Services (Thread-safe Concurrent collections), không cần cơ sở dữ liệu thật (không dùng JPA/Hibernate hay PostgreSQL)
+- **Cơ chế chuyển vai trò:** Demo workspace selector qua HTTP Session & query parameter `?role=...`
+
+---
+
+## 2. Cấu trúc thư mục dự án
 
 ```text
-hms-web/
-├── chon-vai-tro.html          # Màn hình vào hệ thống / chọn vai trò ở chế độ demo
-├── index.html                 # Tổng quan và không gian quản trị của quản lý
-├── dang-ky-kham.html          # Thu ngân: tiếp đón / đăng ký khám
-├── thu-tien.html              # Thu ngân: hóa đơn / thanh toán
-├── kham-benh.html             # Bác sĩ: khám / chẩn đoán / kê đơn thuốc / chỉ định
-├── xet-nghiem.html            # Y tá: xử lý xét nghiệm
-├── cap-phat.html              # Dược sĩ: thuốc / đơn / cấp phát
-├── benh-an.html               # Bác sĩ và y tá: hồ sơ bệnh án
-├── thong-ke.html              # Quản lý: thống kê / xuất CSV
-├── css/style.css              # Giao diện responsive và màn hình chọn vai trò
-├── js/roles.js                # RBAC: vai trò, menu, đường dẫn, quyền truy cập giao diện
-├── js/mock-data.js            # Dữ liệu mẫu
-├── js/api.js                  # CRUD localStorage hoặc Supabase; chuẩn hóa sdt TEXT[]
-├── js/ui.js                   # Layout, menu, modal, thông báo, định dạng
-├── js/app.js                  # Luồng nghiệp vụ và hiển thị dữ liệu
-└── supabase/schema.sql        # Bảng vai trò, view giới hạn cột, RPC và policy RLS
+HMS-WEB/
+├── pom.xml                               # Cấu hình Maven Spring Boot 3.3.5, Java 21
+├── mvnw / mvnw.cmd                       # Maven Wrapper tiện dụng
+├── src/main/java/com/hms/
+│   ├── HmsApplication.java              # Main Application Class
+│   ├── controller/                      # Spring MVC Controllers
+│   │   ├── GlobalControllerAdvice.java  # Tự động inject activeRole, roles, today
+│   │   ├── RoleSelectionController.java # Điều hướng /, /select-role/{role}, /reset-demo
+│   │   ├── DashboardController.java     # /dashboard (Quản lý bệnh viện)
+│   │   ├── RegistrationController.java  # /registration (Y tá & Thu ngân: tiếp đón, phiếu khám)
+│   │   ├── ExaminationController.java   # /examination, /examination/detail/{id} (Bác sĩ)
+│   │   ├── LaboratoryController.java    # /laboratory (Xét nghiệm cận lâm sàng)
+│   │   ├── PharmacyController.java      # /pharmacy (Dược sĩ: kho thuốc, cấp phát đơn)
+│   │   ├── BillingController.java       # /billing, /billing/print/{id} (Thu ngân)
+│   │   ├── MedicalRecordController.java # /medical-records (Hồ sơ bệnh án)
+│   │   ├── StaffController.java         # /staff (Danh bạ nhân viên, phòng khám)
+│   │   └── ReportController.java        # /reports, /reports/export-csv (Báo cáo thống kê)
+│   ├── model/                           # Entity & Domain Models (Patient, Examination, Invoice, ...)
+│   ├── dto/                             # Form DTOs (PatientFormDto, ExamFormDto, DoctorExamDto, ...)
+│   └── mock/                            # Mock Data Store & Mock Services
+│       ├── MockDataStore.java           # Dữ liệu mẫu khởi tạo đồng bộ
+│       ├── MockPatientService.java      # Quản lý bệnh nhân, người nhà, BHYT
+│       ├── MockExaminationService.java  # Phiếu khám, chỉ định XN, kê đơn thuốc
+│       ├── MockPharmacyService.java     # Kho dược, quản lý lô, cấp phát FEFO
+│       ├── MockBillingService.java      # Hóa đơn, thanh toán, doanh thu
+│       └── MockStaffService.java        # Nhân viên, phòng khám, chuyên khoa
+└── src/main/resources/
+    ├── application.properties           # Cấu hình server port 8080, Thymeleaf cache
+    ├── static/
+    │   ├── css/style.css                # CSS bổ trợ, in hóa đơn, responsive
+    │   └── js/app-interactions.js       # JS tương tác tối thiểu (thêm dòng thuốc, modal)
+    └── templates/                       # Thymeleaf HTML Templates
+        ├── fragments/                   # Layout, Sidebar theo vai trò, Header, Modals
+        ├── auth/role-select.html        # Trang chọn vai trò / không gian làm việc
+        ├── dashboard/index.html         # Tổng quan KPI & biểu đồ (Quản lý)
+        ├── registration/index.html      # Tiếp đón & đăng ký phiếu khám
+        ├── examination/                 # Khám bệnh & form kê đơn, chỉ định xét nghiệm
+        ├── laboratory/index.html        # Xét nghiệm cận lâm sàng
+        ├── pharmacy/index.html          # Dược & cấp phát thuốc
+        ├── billing/                     # Viện phí, thanh toán & in hóa đơn
+        ├── medical-records/index.html   # Tra cứu hồ sơ bệnh án
+        ├── staff/index.html             # Quản lý nhân sự & phòng ban
+        └── reports/index.html           # Báo cáo thống kê & xuất CSV
 ```
 
-## 2. Chạy demo
+---
 
-1. Giải nén ZIP.
-2. Mở thư mục bằng VS Code và chạy `chon-vai-tro.html` qua Live Server (khuyến nghị), hoặc dùng HTTP server tĩnh.
-3. Chọn một trong năm vai trò. Dữ liệu mẫu hiển thị ngay và thay đổi lưu trên `localStorage` của trình duyệt.
-4. Nút **Đổi vai trò** trên thanh đầu trang quay lại màn hình chọn vai trò. Nút này chỉ nhằm thử giao diện demo.
+## 3. Hướng dẫn cài đặt & Khởi chạy
 
-Không cần Node.js hay bước build. Tailwind, Font Awesome và thư viện Supabase được tải qua CDN nên bản HTML đầy đủ cần kết nối Internet để tải các thư viện đó.
+### Yêu cầu tiên quyết
+- **JDK 21** trở lên đã cài đặt trên máy.
+- Biến môi trường `JAVA_HOME` trỏ tới JDK.
 
-## 3. Ma trận phân quyền
+### Khởi chạy ứng dụng
+Mở terminal tại thư mục gốc của dự án (`HMS-WEB`):
 
-| Vai trò | Chỉ được vào các phân hệ | Không được vào |
-|---|---|---|
-| **Quản lý bệnh viện** | Tổng quan, bệnh nhân, khám, dược, viện phí, nhân sự, báo cáo | — |
-| **Bác sĩ** | Bàn khám & kê đơn, chẩn đoán, chỉ định xét nghiệm, hồ sơ bệnh án | Dashboard quản lý, báo cáo, tiếp đón / thu ngân, màn hình quản lý kho/cấp phát |
-| **Y tá / Điều dưỡng** | Xét nghiệm cận lâm sàng, hồ sơ bệnh án | Dashboard quản lý, báo cáo, tiếp đón, dược/cấp phát, thu ngân |
-| **Dược sĩ** | Đơn thuốc chờ cấp, danh mục thuốc, lô thuốc, tồn kho, xác nhận cấp phát | Hồ sơ bệnh nhân, bệnh án, tiếp đón, khám, xét nghiệm, viện phí, nhân sự, dashboard và báo cáo |
-| **Thu ngân** | Tiếp đón & đăng ký khám, hóa đơn viện phí, thanh toán, hồ sơ bệnh nhân | Bàn khám bác sĩ, xét nghiệm cận lâm sàng, kho dược/cấp phát, nhân sự, dashboard và báo cáo |
+```bash
+# Sử dụng Maven Wrapper có sẵn trong dự án:
+./mvnw spring-boot:run
 
-Menu chỉ hiển thị các phân hệ được phép. Khi dán trực tiếp URL của trang bị cấm, ứng dụng chuyển về trang làm việc mặc định của vai trò. Các thẻ KPI/tổng quan bị ẩn ở vai trò không phải quản lý. Dược sĩ nhận dữ liệu đơn thuốc qua view chỉ trả mã bệnh nhân cùng thông tin đơn; không truy vấn bảng bệnh nhân, bệnh án hay phiếu khám. Thu ngân nhận hóa đơn qua view tương tự, không cần tải bảng bệnh nhân.
-
-**Giới hạn quan trọng:** chọn vai trò trong chế độ demo là mô phỏng giao diện, không phải cơ chế bảo mật. Người dùng có thể thay đổi `localStorage` trên máy của mình. Chỉ dùng dữ liệu giả ở chế độ này. Khi sử dụng dữ liệu thật, phải cấu hình Supabase Auth và các policy RLS dưới đây.
-
-## 4. Kết nối Supabase và gán quyền thật
-
-1. Tạo project Supabase và kiểm tra cấu trúc các bảng có trùng với schema của ứng dụng. Nếu chưa có bảng, chạy toàn bộ `supabase/schema.sql` bằng SQL Editor với tài khoản quản trị dự án. Nếu bạn đã có schema riêng theo ERD, cần đồng bộ tên cột/khóa trước khi chạy.
-2. Trong Supabase Auth, tạo một tài khoản cho từng nhân viên.
-3. Mở `js/api.js`, điền Project URL và **publishable/anon key**. Tuyệt đối không đưa `service_role` key vào frontend.
-4. Trong SQL Editor, gán UUID người dùng với đúng vai trò và mã nhân viên. Ví dụ (thay UUID và `NV006` bằng dữ liệu thật):
-
-```sql
-insert into public.hms_user_roles (user_id, role, employee_id)
-values ('UUID-USER-TRONG-SUPABASE-AUTH', 'manager', 'NV006');
-
--- Các giá trị role hợp lệ: manager, doctor, nurse, pharmacist, cashier
--- Ví dụ gán dược sĩ:
-insert into public.hms_user_roles (user_id, role, employee_id)
-values ('UUID-USER-DUOC-SI', 'pharmacist', 'NV004');
+# Hoặc nếu máy đã cài Maven:
+mvn spring-boot:run
 ```
 
-5. Mỗi nhân viên cần có đúng một bản ghi vai trò trong `hms_user_roles`. Khi đăng nhập, ứng dụng lấy quyền từ bảng này, không cho tài khoản Supabase tự chọn hoặc tự nâng vai trò trong màn hình. Nếu tài khoản chưa được gán vai trò, hệ thống từ chối vào ứng dụng.
-6. Schema cấu hình RLS theo vai trò; view `v_hms_don_thuoc_cap_phat` giới hạn cột dữ liệu dược sĩ, view `v_hms_phieu_thu_vien_phi` giới hạn dữ liệu thu ngân, và RPC `hms_sync_invoice_for_exam` hỗ trợ đồng bộ viện phí mà không cần mở quyền đọc hóa đơn cho bác sĩ/y tá. Sau khi triển khai, nên thử từng tài khoản thật bằng các truy vấn/URL được phép và bị cấm.
+Sau khi ứng dụng khởi động thành công:
+- Truy cập trình duyệt tại: **`http://localhost:8080/`**
 
-### Vai trò và quyền trên máy chủ
+---
 
-- `hms_user_roles`: ánh xạ `auth.users.id` sang `role` và `employee_id`. Người dùng chỉ đọc được vai trò của mình; quản lý có quyền quản trị ánh xạ vai trò.
-- `hms_current_role()`: hàm phía cơ sở dữ liệu tra cứu vai trò theo phiên đăng nhập hiện tại.
-- Policy RLS cho phép quản lý truy cập tất cả phân hệ; các vai trò còn lại chỉ có quyền trên các bảng cần thiết cho nghiệp vụ.
-- Dược sĩ không có policy đọc `benh_nhan`, `nguoi_nha`, `bao_hiem_yte`, `benh_an` hoặc `phieu_kham`. Chỉ view cấp phát được phép hiển thị các mã cần thiết để xử lý đơn.
-- Dashboard và báo cáo chỉ có route giao diện cho quản lý; quyền truy cập bảng thống kê rộng cũng bị chặn bằng RLS đối với các vai trò còn lại.
+## 4. 5 Vai trò làm việc (Workspaces)
 
-RLS là lớp kiểm soát quan trọng nhưng không thay thế kiểm thử nghiệp vụ, audit log, phân quyền theo phạm vi bệnh nhân, backup và quy trình bảo vệ dữ liệu cá nhân. Cần rà soát policy với schema thực tế trước khi đưa dữ liệu bệnh nhân thật vào hệ thống.
+Hệ thống có trang mở đầu tại **`http://localhost:8080/`** cho phép chọn 1 trong 5 vai trò demo:
 
-## 5. Quy tắc `sdt TEXT[]`
+| STT | Vai trò | URL làm việc mặc định | Quyền hạn & Phân hệ được truy cập |
+|---|---|---|---|
+| 1 | **Quản lý bệnh viện** | `/dashboard` | Toàn quyền: Dashboard KPI, Tiếp đón, Khám bệnh, Xét nghiệm, Dược, Viện phí, Hồ sơ bệnh án, Nhân sự, Báo cáo & Xuất CSV |
+| 2 | **Bác sĩ** | `/examination` | Danh sách khám, Màn hình chi tiết khám, Triệu chứng, Chọn ICD-10, Chỉ định xét nghiệm, **Form kê đơn thuốc**, Hồ sơ bệnh án |
+| 3 | **Y tá / Điều dưỡng** | `/registration` | Danh sách bệnh nhân (thêm/sửa, người nhà, BHYT), Đăng ký phiếu khám, Xét nghiệm cận lâm sàng (`/laboratory`), Hồ sơ bệnh án |
+| 4 | **Dược sĩ** | `/pharmacy` | Đơn thuốc chờ cấp phát, Chi tiết đơn, Xác nhận cấp phát trừ kho theo FEFO, Danh mục thuốc, Danh sách lô thuốc |
+| 5 | **Thu ngân** | `/billing` | Danh sách phiếu thu viện phí, Lọc trạng thái, Xác nhận thanh toán, In hóa đơn (`/billing/print/{id}`), Đăng ký khám (`/registration`) |
 
-Các trường `sdt` của `benh_nhan`, `nguoi_nha` và `nhan_vien` được chuẩn hóa qua `HMSApi.normalizePhoneArray()`. Giá trị nhập `0901234567, 0911222333` được gửi thành mảng PostgreSQL: `['0901234567', '0911222333']`. Khi nhận dữ liệu, giao diện dùng `HMSUI.phoneText()` để hiển thị danh sách số. Không stringify mảng thành JSON string.
+> **Lưu ý:** Nút **"Đổi vai trò"** và menu chuyển vai trò nhanh trên thanh Header hỗ trợ chuyển đổi giữa các vai trò bất kỳ lúc nào để duyệt giao diện mà không cần đăng nhập lại. Nút **"Đặt lại dữ liệu"** giúp khôi phục dữ liệu mẫu ban đầu.
 
-## 6. Luồng demo chính
+---
 
-- **Tiếp đón:** tạo/sửa bệnh nhân, người nhà và BHYT; tạo phiếu khám.
-- **Khám:** bác sĩ ghi triệu chứng, chọn chẩn đoán ICD, chỉ định xét nghiệm và kê đơn.
-- **Xét nghiệm:** cập nhật kết quả và kết luận.
-- **Dược:** xem đơn theo mã bệnh nhân, quản lý thuốc/lô và xác nhận cấp phát; tồn kho giảm theo lô gần hạn dùng (FEFO).
-- **Viện phí:** thu ngân xem hóa đơn qua danh sách rút gọn, cập nhật phương thức và trạng thái thanh toán.
-- **Quản lý:** xem dashboard, dữ liệu toàn viện, nhân sự và xuất báo cáo CSV.
+## 5. Các tính năng nổi bật đã hoàn thiện
 
-## 7. Phạm vi
+1. **Form Kê đơn thuốc Bác sĩ:**
+   - Được tích hợp trực tiếp trong màn hình chi tiết phiếu khám (`/examination/detail/{id}`).
+   - Cho phép chọn thuốc từ danh mục, nhập số lượng, đơn vị tính, cách dùng.
+   - Hỗ trợ thêm/bớt nhiều dòng thuốc linh hoạt trước khi lưu.
+   - Khi lưu, tự động sinh mã đơn thuốc `DT...` và tạo hóa đơn viện phí `HD...` chờ thanh toán.
 
-Đây là bộ prototype phục vụ phát triển bài tập lớn, không phải phần mềm y tế đã được kiểm định để vận hành thực tế. Cần bổ sung audit log, giao dịch kho nguyên tử chống cấp phát đồng thời, phân quyền theo phạm vi hồ sơ, kiểm thử bảo mật, quy trình hoàn/hủy thanh toán, quản lý phiên, chính sách backup và rà soát pháp lý trước khi đưa vào vận hành.
+2. **Chuyển phần Tiếp đón / Đăng ký khám cho Thu ngân:**
+   - Thu ngân có toàn quyền truy cập phân hệ Tiếp đón & Đăng ký khám (`/registration`) cũng như thanh toán viện phí (`/billing`).
+
+3. **Cấp phát thuốc Dược sĩ (FEFO):**
+   - Dược sĩ xem danh sách đơn chờ cấp phát, bấm xác nhận trừ số lượng tồn kho của các lô gần hạn dùng nhất trước.
+
+4. **In Hóa đơn Viện phí:**
+   - Giao diện in tiêu chuẩn chuẩn y tế tại `/billing/print/{id}` tự động kích hoạt `window.print()`.

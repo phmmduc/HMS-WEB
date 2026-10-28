@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: html_head('Hồ sơ bệnh án')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div class="workspace">
+        <div th:replace="~{fragments/header :: header}"></div>
+        <div th:replace="~{fragments/modals :: alerts}"></div>
+
+        <main class="page-content">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow"><i class="fa-solid fa-folder-medical"></i> HỒ SƠ Y KHOA</div>
+                    <h1>Hồ sơ bệnh án & Tiền sử khám</h1>
+                    <p>Tra cứu chi tiết quá trình khám chữa bệnh, chẩn đoán, tiền sử dị ứng và thẻ BHYT của người bệnh.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Patient Selector Column -->
+                <div class="lg:col-span-1">
+                    <section class="section-card">
+                        <div class="section-card-header">
+                            <div>
+                                <div class="section-card-title"><i class="fa-solid fa-users"></i> Danh sách bệnh nhân</div>
+                                <div class="section-card-subtitle">Chọn người bệnh để xem hồ sơ</div>
+                            </div>
+                        </div>
+                        <div class="section-card-body" style="padding: 12px;">
+                            <form th:action="@{/medical-records}" method="get" style="margin-bottom: 12px;">
+                                <label class="search-control">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="search" name="search" th:value="${search}" placeholder="Tìm họ tên, CCCD, mã BN...">
+                                </label>
+                            </form>
+
+                            <div style="display: grid; gap: 8px; max-height: 600px; overflow-y: auto;">
+                                <a th:each="p : ${patients}"
+                                   th:href="@{/medical-records(selectedId=${p.idBn}, search=${search})}"
+                                   style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; text-decoration: none;"
+                                   th:styleappend="${selectedPatient != null and selectedPatient.idBn == p.idBn} ? 'background: #e0f2fe; border-color: #38bdf8;' : 'background: #fff;'">
+                                    <span class="person-avatar" th:text="${p.initials}">NA</span>
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div style="font-weight: 700; color: #1e293b; font-size: 13px;" th:text="${p.hoTen}">Nguyễn Minh Anh</div>
+                                        <div style="font-size: 11px; color: #64748b;" th:text="${p.idBn + ' · ' + p.phoneDisplay}">BN001 · 0901234567</div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #94a3b8;"></i>
+                                </a>
+                                <div th:if="${#lists.isEmpty(patients)}" class="empty-state">Không có bệnh nhân phù hợp.</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Record Details Column -->
+                <div class="lg:col-span-2">
+                    <section th:if="${selectedPatient != null}" class="section-card">
+                        <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div class="section-card-title" th:text="${'Hồ sơ: ' + selectedPatient.hoTen + ' (' + selectedPatient.idBn + ')'}">Hồ sơ bệnh nhân</div>
+                                <div class="section-card-subtitle" th:text="${'Ngày mở hồ sơ: ' + selectedPatient.ngayTao}">Ngày mở: 2026-10-28</div>
+                            </div>
+                            <span class="pill pill-success" th:text="${selectedPatient.trangThai}">Ổn định</span>
+                        </div>
+                        <div class="section-card-body">
+                            <!-- Info grid -->
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span>Ngày sinh</span>
+                                    <strong th:text="${selectedPatient.ngaySinh != null ? selectedPatient.ngaySinh : '—'}">1998-03-14</strong>
+                                </div>
+                                <div class="info-item">
+                                    <span>Giới tính</span>
+                                    <strong th:text="${selectedPatient.gioiTinh}">Nữ</strong>
+                                </div>
+                                <div class="info-item">
+                                    <span>Số CCCD</span>
+                                    <strong th:text="${selectedPatient.cccd != null and !selectedPatient.cccd.isEmpty() ? selectedPatient.cccd : '—'}">001206012345</strong>
+                                </div>
+                                <div class="info-item">
+                                    <span>Số điện thoại</span>
+                                    <strong th:text="${selectedPatient.phoneDisplay}">0901234567</strong>
+                                </div>
+                                <div class="info-item">
+                                    <span>Thẻ BHYT</span>
+                                    <strong th:text="${selectedPatient.insurance != null ? selectedPatient.insurance.soBhyt + ' (Hưởng ' + selectedPatient.insurance.mucHuong + '%)' : 'Chưa có'}">HN401... (80%)</strong>
+                                </div>
+                                <div class="info-item">
+                                    <span>Người nhà</span>
+                                    <strong th:text="${selectedPatient.relative != null ? selectedPatient.relative.hoTen + ' (' + selectedPatient.relative.moiQuanHe + ')' : 'Chưa khai báo'}">Bố (090...)</strong>
+                                </div>
+                            </div>
+
+                            <div class="soft-divider"></div>
+
+                            <!-- Medical Records History -->
+                            <h3 class="subheading" style="margin-top: 16px;"><i class="fa-solid fa-notes-medical"></i> Bệnh án & Tiền sử bệnh</h3>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                    <tr>
+                                        <th>MÃ BỆNH ÁN</th>
+                                        <th>NGÀY TẠO</th>
+                                        <th>TIỀN SỬ BỆNH</th>
+                                        <th>TRẠNG THÁI</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="r : ${records}">
+                                        <td><span class="id-code" th:text="${r.idBenhan}">BA001</span></td>
+                                        <td th:text="${r.ngayTao}">2026-08-20</td>
+                                        <td th:text="${r.tienSuBenh}">Viêm mũi dị ứng theo mùa</td>
+                                        <td><span class="pill pill-primary" th:text="${r.trangThai}">Đang theo dõi</span></td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(records)}">
+                                        <td colspan="4" class="empty-state">Chưa ghi nhận tiền sử bệnh án.</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="soft-divider"></div>
+
+                            <!-- Past Consultations -->
+                            <h3 class="subheading" style="margin-top: 16px;"><i class="fa-solid fa-stethoscope"></i> Lịch sử các lần khám bệnh</h3>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                    <tr>
+                                        <th>MÃ PHIẾU</th>
+                                        <th>NGÀY KHÁM</th>
+                                        <th>PHÒNG KHÁM</th>
+                                        <th>BÁC SĨ</th>
+                                        <th>CHẨN ĐOÁN</th>
+                                        <th>TRẠNG THÁI</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="ex : ${exams}">
+                                        <td><span class="id-code" th:text="${ex.idPhieukham}">PKM001</span></td>
+                                        <td th:text="${ex.ngayDky}">2026-10-28</td>
+                                        <td th:text="${ex.roomName}">Phòng khám Nội</td>
+                                        <td th:text="${ex.doctorName}">BS. Nguyễn Hoàng An</td>
+                                        <td>
+                                            <span th:if="${ex.icdCode != null}" th:text="${ex.icdCode + ' — ' + ex.diagnosisName}">J06.9</span>
+                                            <span th:unless="${ex.icdCode != null}" class="small-muted">—</span>
+                                        </td>
+                                        <td><span class="pill pill-success" th:text="${ex.trangThai}">Đã khám</span></td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(exams)}">
+                                        <td colspan="6" class="empty-state">Chưa có lịch sử khám bệnh.</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section th:unless="${selectedPatient != null}" class="section-card">
+                        <div class="section-card-body" style="padding: 40px; text-align: center;">
+                            <i class="fa-solid fa-folder-open" style="font-size: 38px; color: #94a3b8; margin-bottom: 12px;"></i>
+                            <h3 style="color: #475569;">Vui lòng chọn một bệnh nhân từ danh sách bên trái</h3>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>
+

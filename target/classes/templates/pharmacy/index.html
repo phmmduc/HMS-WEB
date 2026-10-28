@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: html_head('Dược & Cấp phát thuốc')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div class="workspace">
+        <div th:replace="~{fragments/header :: header}"></div>
+        <div th:replace="~{fragments/modals :: alerts}"></div>
+
+        <main class="page-content">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow"><i class="fa-solid fa-capsules"></i> KHO DƯỢC & CẤP PHÁT</div>
+                    <h1>Dược & Cấp phát thuốc</h1>
+                    <p>Quản lý danh mục dược phẩm, theo dõi tồn kho theo lô hạn sử dụng và cấp phát thuốc theo đơn của bác sĩ.</p>
+                </div>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="module-tabs" style="margin-bottom: 20px;">
+                <a th:href="@{/pharmacy(tab='prescriptions', search=${search})}"
+                   class="module-tab" th:classappend="${activeTab == 'prescriptions'} ? ' active' : ''">
+                    <i class="fa-solid fa-file-prescription"></i> Đơn thuốc chờ cấp
+                    <span class="nav-count" th:text="${pendingOrders}">1</span>
+                </a>
+                <a th:href="@{/pharmacy(tab='medicines', search=${search})}"
+                   class="module-tab" th:classappend="${activeTab == 'medicines'} ? ' active' : ''">
+                    <i class="fa-solid fa-pills"></i> Danh mục thuốc
+                    <span class="nav-count" th:text="${totalMedicines}">5</span>
+                </a>
+                <a th:href="@{/pharmacy(tab='lots', search=${search})}"
+                   class="module-tab" th:classappend="${activeTab == 'lots'} ? ' active' : ''">
+                    <i class="fa-solid fa-boxes-stacked"></i> Lô thuốc & Hạn dùng
+                    <span class="nav-count" th:text="${#lists.size(lots)}">6</span>
+                </a>
+            </div>
+
+            <!-- TAB 1: Đơn thuốc chờ cấp phát -->
+            <section th:if="${activeTab == 'prescriptions'}" class="section-card">
+                <div class="section-card-header">
+                    <div>
+                        <div class="section-card-title"><i class="fa-solid fa-prescription-bottle-medical"></i> Đơn thuốc cần xuất kho</div>
+                        <div class="section-card-subtitle">Kiểm tra thông tin chi tiết từng loại thuốc trước khi xác nhận cấp phát</div>
+                    </div>
+                </div>
+                <div class="section-card-body">
+                    <div class="inline-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Khi bấm <strong>Cấp phát</strong>, hệ thống tự động trừ kho lô theo nguyên tắc FEFO (lô hết hạn trước xuất trước) và đồng bộ tổng tồn kho.</span>
+                    </div>
+
+                    <div class="table-wrap" style="margin-top: 14px;">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>MÃ ĐƠN</th>
+                                <th>MÃ PHIẾU</th>
+                                <th>BỆNH NHÂN</th>
+                                <th>NGÀY KÊ</th>
+                                <th>DANH MỤC THUỐC</th>
+                                <th>TỔNG TIỀN</th>
+                                <th>TRẠNG THÁI</th>
+                                <th>TÁC VỤ</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="rx : ${prescriptions}">
+                                <td><span class="id-code" th:text="${rx.idDt}">DT001</span></td>
+                                <td><span class="id-code" th:text="${rx.idPhieukham}">PKM001</span></td>
+                                <td th:text="${rx.patientName != null ? rx.patientName : rx.patientId}">Nguyễn Minh Anh</td>
+                                <td th:text="${rx.ngayKe}">2026-10-28</td>
+                                <td style="max-width: 280px; white-space: normal;" th:text="${rx.itemsSummary}">Cetirizine 10mg x 7; Paracetamol 500mg x 20</td>
+                                <td><strong th:text="${#numbers.formatDecimal(rx.tongTien, 0, 'POINT', 0, 'POINT') + ' đ'}">23.000 đ</strong></td>
+                                <td>
+                                    <span class="pill"
+                                          th:classappend="${rx.trangThai == 'Đã cấp phát' ? 'pill-success' : 'pill-warning'}"
+                                          th:text="${rx.trangThai}">Chờ cấp phát</span>
+                                </td>
+                                <td>
+                                    <form th:if="${rx.trangThai == 'Chờ cấp phát'}" th:action="@{/pharmacy/dispense}" method="post" style="display: inline;">
+                                        <input type="hidden" name="idDt" th:value="${rx.idDt}">
+                                        <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Xác nhận cấp phát đơn thuốc ' + this.form.idDt.value + '?')">
+                                            <i class="fa-solid fa-check"></i> Cấp phát
+                                        </button>
+                                    </form>
+                                    <span th:if="${rx.trangThai == 'Đã cấp phát'}" class="small-muted">
+                                        <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Đã xuất kho
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(prescriptions)}">
+                                <td colspan="8" class="empty-state">Không có đơn thuốc nào.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: Danh mục thuốc -->
+            <section th:if="${activeTab == 'medicines'}" class="section-card">
+                <div class="section-card-header">
+                    <div>
+                        <div class="section-card-title"><i class="fa-solid fa-pills"></i> Danh mục dược phẩm & Tồn kho</div>
+                        <div class="section-card-subtitle">Quản lý các mặt hàng thuốc trong danh mục bệnh viện</div>
+                    </div>
+                </div>
+                <div class="section-card-body">
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>MÃ THUỐC</th>
+                                <th>TÊN THUỐC</th>
+                                <th>NHÀ SẢN XUẤT</th>
+                                <th>ĐƠN VỊ</th>
+                                <th>TỒN KHO</th>
+                                <th>KÊ ĐƠN</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="m : ${medicines}">
+                                <td><span class="id-code" th:text="${m.idThuoc}">T001</span></td>
+                                <td><strong th:text="${m.tenThuoc}">Paracetamol 500 mg</strong></td>
+                                <td th:text="${m.nhaSanXuat}">DHG Pharma</td>
+                                <td th:text="${m.donVi}">viên</td>
+                                <td><strong th:text="${m.soLuongTonKho + ' ' + m.donVi}">420 viên</strong></td>
+                                <td>
+                                    <span class="pill" th:text="${m.canKeDon ? 'Theo đơn' : 'Không bắt buộc'}">Theo đơn</span>
+                                </td>
+                                <td>
+                                    <span class="pill" th:classappend="${m.inventoryBadgeClass}" th:text="${m.inventoryStatusText}">Bình thường</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: Lô thuốc & Hạn dùng -->
+            <section th:if="${activeTab == 'lots'}" class="section-card">
+                <div class="section-card-header">
+                    <div>
+                        <div class="section-card-title"><i class="fa-solid fa-boxes-stacked"></i> Danh sách lô thuốc</div>
+                        <div class="section-card-subtitle">Theo dõi hạn sử dụng, số lượng nhập, tồn kho và giá bán</div>
+                    </div>
+                </div>
+                <div class="section-card-body">
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>SỐ LÔ</th>
+                                <th>TÊN THUỐC</th>
+                                <th>HẠN SỬ DỤNG</th>
+                                <th>NHẬP</th>
+                                <th>TỒN KHO</th>
+                                <th>GIÁ NHẬP</th>
+                                <th>GIÁ BÁN</th>
+                                <th>TÌNH TRẠNG</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="lot : ${lots}">
+                                <td><span class="id-code" th:text="${lot.soLo}">PAR-2608</span></td>
+                                <td th:text="${lot.tenThuoc}">Paracetamol 500 mg</td>
+                                <td th:text="${lot.hanSuDung}">2026-12-15</td>
+                                <td th:text="${lot.soLuongNhap}">500</td>
+                                <td><strong th:text="${lot.soLuongTon + ' ' + (lot.donVi != null ? lot.donVi : '')}">300 viên</strong></td>
+                                <td th:text="${#numbers.formatDecimal(lot.giaNhap, 0, 'POINT', 0, 'POINT') + ' đ'}">450 đ</td>
+                                <td><strong th:text="${#numbers.formatDecimal(lot.giaBan, 0, 'POINT', 0, 'POINT') + ' đ'}">800 đ</strong></td>
+                                <td>
+                                    <span class="pill" th:classappend="${lot.expiryBadgeClass}" th:text="${lot.expiryStatusText}">Còn hạn</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>
+

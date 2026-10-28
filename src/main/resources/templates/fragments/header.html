@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="header" class="topbar">
+    <button type="button" class="icon-button" id="sidebar-toggle" style="display: none;" title="Mở danh mục">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="breadcrumb">
+        <i class="fa-solid fa-hospital-user"></i>
+        <span>Hệ thống</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <strong th:text="${pageTitle != null ? pageTitle : currentRole.label}">Bàn làm việc</strong>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <!-- Quick Role Switcher Pill -->
+    <div class="role-switcher-badge" style="display: flex; align-items: center; gap: 8px; background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 12px; border-radius: 9999px;">
+        <span class="pill" style="background: #0284c7; color: white; padding: 2px 8px; font-size: 11px; font-weight: 700;" th:text="${currentRole.shortLabel}">Vai trò</span>
+        <a th:href="@{/}" style="font-size: 11px; color: #0369a1; font-weight: 600;" title="Nhấn để đổi sang vai trò khác">
+            Đổi vai trò <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+        </a>
+    </div>
+
+    <div class="topbar-divider"></div>
+
+    <!-- Staff Info -->
+    <div class="staff-switcher">
+        <div class="avatar" th:text="${currentRole.employeeName != null ? currentRole.employeeName.substring(0, 2).toUpperCase() : 'NV'}">
+            NV
+        </div>
+        <div class="staff-meta">
+            <strong th:text="${currentRole.employeeName}">Nguyễn Hoàng An</strong>
+            <span th:text="${currentRole.label + ' (' + currentRole.employeeId + ')'}">Bác sĩ (NV001)</span>
+        </div>
+    </div>
+</header>
+</body>
+</html>
+

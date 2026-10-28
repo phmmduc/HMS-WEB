@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: html_head('Nhân sự & Chuyên khoa')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div class="workspace">
+        <div th:replace="~{fragments/header :: header}"></div>
+        <div th:replace="~{fragments/modals :: alerts}"></div>
+
+        <main class="page-content">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow"><i class="fa-solid fa-user-doctor"></i> TỔ CHỨC CÁN BỘ</div>
+                    <h1>Nhân sự & Chuyên khoa</h1>
+                    <p>Quản lý đội ngũ y bác sĩ, điều dưỡng, dược sĩ, thu ngân và danh mục phòng khám chuyên khoa.</p>
+                </div>
+            </div>
+
+            <!-- Staff List -->
+            <section class="section-card">
+                <div class="section-card-header">
+                    <div>
+                        <div class="section-card-title"><i class="fa-solid fa-address-book"></i> Danh bạ nhân sự y tế</div>
+                        <div class="section-card-subtitle">Phân bổ nhân sự theo các vị trí làm việc và chuyên môn</div>
+                    </div>
+                </div>
+                <div class="section-card-body">
+                    <div class="table-toolbar">
+                        <form th:action="@{/staff}" method="get" style="display: flex; gap: 10px; width: 100%;">
+                            <label class="search-control">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" name="search" th:value="${search}" placeholder="Tìm theo tên nhân viên, mã NV, email...">
+                            </label>
+                            <select name="role" class="filter-select">
+                                <option value="all">-- Tất cả vị trí --</option>
+                                <option value="Bác sĩ" th:selected="${role == 'Bác sĩ'}">Bác sĩ</option>
+                                <option value="Y tá" th:selected="${role == 'Y tá'}">Y tá / Điều dưỡng</option>
+                                <option value="Dược sĩ" th:selected="${role == 'Dược sĩ'}">Dược sĩ</option>
+                                <option value="Thu ngân" th:selected="${role == 'Thu ngân'}">Thu ngân</option>
+                                <option value="Quản lý" th:selected="${role == 'Quản lý'}">Quản lý</option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-filter"></i> Lọc</button>
+                        </form>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>NHÂN VIÊN</th>
+                                <th>MÃ NV</th>
+                                <th>VAI TRÒ</th>
+                                <th>CHUYÊN MÔN / HỌC VỊ</th>
+                                <th>ĐIỆN THOẠI</th>
+                                <th>EMAIL</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="st : ${staffList}">
+                                <td>
+                                    <div class="patient-cell">
+                                        <span class="person-avatar" th:text="${st.initials}">NV</span>
+                                        <span>
+                                            <span class="person-name" th:text="${st.hoTen}">BS. Nguyễn Hoàng An</span>
+                                            <span class="person-meta" th:text="${st.gioiTinh}">Nam</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td><span class="id-code" th:text="${st.idNv}">NV001</span></td>
+                                <td>
+                                    <span class="pill"
+                                          th:classappend="${st.vaiTro == 'Bác sĩ' ? 'pill-primary' : (st.vaiTro == 'Quản lý' ? 'pill-warning' : 'pill-success')}"
+                                          th:text="${st.vaiTro}">Bác sĩ</span>
+                                </td>
+                                <td th:text="${st.specialtyDetail != null ? st.specialtyDetail : '—'}">Thạc sĩ · Nội tổng hợp</td>
+                                <td th:text="${st.phoneDisplay}">0903001001</td>
+                                <td th:text="${st.email}">an.nguyen@hms.local</td>
+                                <td><span class="pill pill-success" th:text="${st.trangThai}">Đang làm việc</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Specialties and Rooms -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                <!-- Specialties -->
+                <section class="section-card">
+                    <div class="section-card-header">
+                        <div>
+                            <div class="section-card-title"><i class="fa-solid fa-layer-group"></i> Khoa chuyên môn</div>
+                            <div class="section-card-subtitle">Các chuyên khoa lâm sàng và cận lâm sàng</div>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>MÃ CK</th>
+                                <th>TÊN KHOA</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="ck : ${specialties}">
+                                <td><span class="id-code" th:text="${ck.idCk}">CK01</span></td>
+                                <td><strong th:text="${ck.tenCk}">Nội tổng hợp</strong></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Rooms -->
+                <section class="section-card">
+                    <div class="section-card-header">
+                        <div>
+                            <div class="section-card-title"><i class="fa-solid fa-door-open"></i> Phòng khám bệnh</div>
+                            <div class="section-card-subtitle">Vị trí buồng khám và trạng thái hoạt động</div>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>MÃ PHÒNG</th>
+                                <th>TÊN PHÒNG KHÁM</th>
+                                <th>SỐ PHÒNG</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="r : ${rooms}">
+                                <td><span class="id-code" th:text="${r.idPk}">PK01</span></td>
+                                <td><strong th:text="${r.tenPhong}">Phòng khám Nội tổng hợp</strong></td>
+                                <td th:text="${r.soPhong}">A-101</td>
+                                <td><span class="pill pill-success" th:text="${r.trangThai}">Hoạt động</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>
+
