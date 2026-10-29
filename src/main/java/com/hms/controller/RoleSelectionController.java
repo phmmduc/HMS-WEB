@@ -11,6 +11,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @Controller
 public class RoleSelectionController {
@@ -35,11 +38,57 @@ public class RoleSelectionController {
     public String selectRole(@PathVariable String roleKey, HttpSession session) {
         Role role = Role.fromKey(roleKey);
         session.setAttribute(GlobalControllerAdvice.SESSION_ROLE, role);
-        Staff staff = staffService.getStaffById(role.getEmployeeId());
-        if (staff != null) {
-            session.setAttribute(GlobalControllerAdvice.SESSION_STAFF, staff);
+        session.removeAttribute(GlobalControllerAdvice.SESSION_STAFF);
+        return "redirect:/select-staff?role=" + role.getKey();
+    }
+
+    @GetMapping("/select-staff")
+    public String selectStaff(@RequestParam(required = false) String role,
+                             Model model,
+                             HttpSession session) {
+        Role selectedRole;
+        if (role != null && !role.isBlank()) {
+            selectedRole = Role.fromKey(role);
+        } else {
+            selectedRole = (Role) session.getAttribute(GlobalControllerAdvice.SESSION_ROLE);
+            if (selectedRole == null) selectedRole = Role.MANAGER;
         }
-        return "redirect:" + role.getStartUrl();
+        session.setAttribute(GlobalControllerAdvice.SESSION_ROLE, selectedRole);
+
+        List<Staff> staffList = staffService.getStaffByRole(selectedRole.getShortLabel());
+        Staff curStaff = (Staff) session.getAttribute(GlobalControllerAdvice.SESSION_STAFF);
+        if (curStaff != null && !selectedRole.getShortLabel().equalsIgnoreCase(curStaff.getVaiTro())) {
+            curStaff = null;
+            session.removeAttribute(GlobalControllerAdvice.SESSION_STAFF);
+        }
+
+        model.addAttribute("selectedRole", selectedRole);
+        model.addAttribute("staffList", staffList);
+        model.addAttribute("currentStaff", curStaff);
+        return "auth/staff-select";
+    }
+
+    @GetMapping({"/choose-staff/{id}", "/select-staff/{id}"})
+    public String chooseStaff(@PathVariable String id, HttpSession session) {
+        Staff staff = staffService.getStaffById(id);
+        if (staff == null) {
+            return "redirect:/";
+        }
+        Role matchedRole = null;
+        for (Role r : Role.values()) {
+            if (r.getShortLabel().equalsIgnoreCase(staff.getVaiTro())) {
+                matchedRole = r;
+                break;
+            }
+        }
+        if (matchedRole == null) {
+            matchedRole = Role.MANAGER;
+        }
+
+        session.setAttribute(GlobalControllerAdvice.SESSION_ROLE, matchedRole);
+        session.setAttribute(GlobalControllerAdvice.SESSION_STAFF, staff);
+
+        return "redirect:" + matchedRole.getStartUrl();
     }
 
     @GetMapping("/switch-staff/{id}")

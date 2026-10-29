@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: html_head('Quản lý loại xét nghiệm')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div class="workspace">
+        <div th:replace="~{fragments/header :: header}"></div>
+        <div th:replace="~{fragments/modals :: alerts}"></div>
+
+        <main class="page-content">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow"><i class="fa-solid fa-flask-vial"></i> DANH MỤC XÉT NGHIỆM</div>
+                    <h1>Quản lý loại xét nghiệm</h1>
+                    <p>Danh mục các loại xét nghiệm, đơn giá dịch vụ và trạng thái phục vụ chỉ định cận lâm sàng.</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a th:href="@{/laboratory}" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-arrow-left"></i> Kết quả xét nghiệm
+                    </a>
+                    <button type="button" class="btn btn-primary" data-open-modal="modal-add-lab-type">
+                        <i class="fa-solid fa-plus"></i> Thêm loại xét nghiệm
+                    </button>
+                </div>
+            </div>
+
+            <div class="stat-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Tổng loại xét nghiệm</span>
+                        <span class="stat-icon tone-blue"><i class="fa-solid fa-flask-vial"></i></span>
+                    </div>
+                    <div class="stat-value" th:text="${totalCount}">4</div>
+                    <div class="stat-sub">Danh mục lưu hành trong viện</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Đang hoạt động</span>
+                        <span class="stat-icon tone-green"><i class="fa-solid fa-circle-check"></i></span>
+                    </div>
+                    <div class="stat-value" th:text="${activeCount}">4</div>
+                    <div class="stat-sub">Khả dụng cho bác sĩ chỉ định</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Ngừng hoạt động</span>
+                        <span class="stat-icon tone-gray"><i class="fa-solid fa-circle-pause"></i></span>
+                    </div>
+                    <div class="stat-value" th:text="${inactiveCount}">0</div>
+                    <div class="stat-sub">Tạm ngưng tiếp nhận mẫu mới</div>
+                </div>
+            </div>
+
+            <section class="section-card" style="margin-top: 24px;">
+                <div class="section-card-header">
+                    <div>
+                        <div class="section-card-title"><i class="fa-solid fa-list-check"></i> Danh mục loại xét nghiệm</div>
+                        <div class="section-card-subtitle">Đồng bộ tự động với bảng chỉ định xét nghiệm trong phân hệ khám bệnh</div>
+                    </div>
+                </div>
+                <div class="section-card-body">
+                    <div class="table-toolbar">
+                        <form th:action="@{/laboratory/types}" method="get" style="display: flex; gap: 10px; width: 100%;">
+                            <label class="search-control">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" name="search" th:value="${search}" placeholder="Tìm theo mã (XN001) hoặc tên loại xét nghiệm...">
+                            </label>
+                            <select name="status" class="filter-select">
+                                <option value="all">-- Tất cả trạng thái --</option>
+                                <option value="Hoạt động" th:selected="${status == 'Hoạt động'}">Hoạt động</option>
+                                <option value="Ngừng hoạt động" th:selected="${status == 'Ngừng hoạt động'}">Ngừng hoạt động</option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-filter"></i> Lọc</button>
+                            <a th:if="${search != null or status != null}" th:href="@{/laboratory/types}" class="btn btn-secondary btn-sm" title="Đặt lại bộ lọc">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </a>
+                        </form>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th style="width: 130px;">MÃ LOẠI XN</th>
+                                <th>TÊN LOẠI XÉT NGHIỆM</th>
+                                <th style="width: 170px;">ĐƠN GIÁ (VNĐ)</th>
+                                <th style="width: 160px;">TRẠNG THÁI</th>
+                                <th style="width: 140px; text-align: right;">THAO TÁC</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${labTypes}">
+                                <td>
+                                    <span class="id-code" th:text="${item.idLxn}">XN001</span>
+                                </td>
+                                <td>
+                                    <strong style="color: #0f172a;" th:text="${item.tenLxn}">Công thức máu</strong>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 600; color: #0284c7;"
+                                          th:text="${#numbers.formatDecimal(item.chiPhi != null ? item.chiPhi : 0, 0, 'POINT', 0, 'POINT') + ' đ'}">
+                                        180.000 đ
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge"
+                                          th:classappend="${item.trangThai == 'Hoạt động' ? ' green' : ' gray'}"
+                                          th:text="${item.trangThai != null ? item.trangThai : 'Hoạt động'}">
+                                        Hoạt động
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <div class="row-actions" style="justify-content: flex-end;">
+                                        <!-- Toggle Status -->
+                                        <form th:action="@{/laboratory/types/toggle}" method="post" style="display: inline; margin: 0;">
+                                            <input type="hidden" name="idLxn" th:value="${item.idLxn}">
+                                            <button type="submit" class="btn btn-secondary btn-sm"
+                                                    th:title="${item.trangThai == 'Hoạt động' ? 'Chuyển sang Ngừng hoạt động' : 'Kích hoạt lại'}">
+                                                <i th:class="${item.trangThai == 'Hoạt động' ? 'fa-solid fa-toggle-on' : 'fa-solid fa-toggle-off'}"
+                                                   th:style="${item.trangThai == 'Hoạt động' ? 'color: #10b981;' : 'color: #94a3b8;'}"></i>
+                                            </button>
+                                        </form>
+
+                                        <!-- Delete -->
+                                        <form th:action="@{/laboratory/types/delete}" method="post" style="display: inline; margin: 0;">
+                                            <input type="hidden" name="idLxn" th:value="${item.idLxn}">
+                                            <button type="submit" class="btn btn-secondary btn-sm"
+                                                    title="Xóa loại xét nghiệm"
+                                                    onclick="return confirm('Bạn có chắc chắn muốn xóa loại xét nghiệm ' + this.form.idLxn.value + '?');">
+                                                <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(labTypes)}">
+                                <td colspan="5" class="empty-state">
+                                    <i class="fa-solid fa-flask-vial" style="font-size: 32px; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+                                    Không tìm thấy loại xét nghiệm nào phù hợp.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<!-- MODAL: Thêm loại xét nghiệm mới -->
+<div id="modal-add-lab-type" class="modal-overlay">
+    <div class="modal-card" style="background: white; border-radius: 16px; width: min(100% - 32px, 500px); max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
+            <div>
+                <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0;">Thêm loại xét nghiệm mới</h3>
+                <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Bổ sung danh mục xét nghiệm phục vụ khám và chỉ định cận lâm sàng</p>
+            </div>
+            <button type="button" data-close-modal style="background: none; border: none; font-size: 18px; color: #94a3b8; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form th:action="@{/laboratory/types/create}" method="post" th:object="${newLabType}">
+            <div class="form-grid">
+                <label class="form-field full">
+                    <span>Mã loại xét nghiệm (để trống để tự sinh XNxxx)</span>
+                    <input type="text" name="idLxn" placeholder="Ví dụ: XN005">
+                </label>
+
+                <label class="form-field full">
+                    <span>Tên loại xét nghiệm *</span>
+                    <input type="text" name="tenLxn" required placeholder="Ví dụ: Đo điện tim (ECG)">
+                </label>
+
+                <label class="form-field full">
+                    <span>Đơn giá dịch vụ (VNĐ) *</span>
+                    <input type="number" name="chiPhi" required min="0" step="5000" placeholder="Ví dụ: 150000" value="150000">
+                </label>
+
+                <label class="form-field full">
+                    <span>Trạng thái hoạt động</span>
+                    <select name="trangThai">
+                        <option value="Hoạt động" selected>Hoạt động (Khả dụng chỉ định)</option>
+                        <option value="Ngừng hoạt động">Ngừng hoạt động (Tạm khóa)</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="inline-note" style="margin-top: 14px;">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Loại xét nghiệm mới sẽ ngay lập tức hiển thị trong bảng chỉ định của Bác sĩ khi khám bệnh.</span>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" data-close-modal>Hủy</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Thêm xét nghiệm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

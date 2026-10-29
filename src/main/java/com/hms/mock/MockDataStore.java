@@ -41,6 +41,7 @@ public class MockDataStore {
     private final AtomicLong roomSeq = new AtomicLong(5);
     private final AtomicLong medicineSeq = new AtomicLong(7);
     private final AtomicLong lotSeq = new AtomicLong(9);
+    private final AtomicLong labTypeSeq = new AtomicLong(5);
 
     @PostConstruct
     public void init() {
@@ -64,6 +65,7 @@ public class MockDataStore {
         prescriptions.clear();
         prescriptionDetails.clear();
         invoices.clear();
+        labTypeSeq.set(5);
 
         LocalDate today = LocalDate.now();
 
@@ -516,6 +518,16 @@ public class MockDataStore {
             inv.setPatientName(ex.getPatientName());
             inv.setPatientPhone(ex.getPatientPhone());
         }
+
+        // 11. Link Staff Rooms
+        for (Staff s : staffMembers.values()) {
+            if (s.getIdPk() != null) {
+                ClinicRoom r = rooms.get(s.getIdPk());
+                if (r != null) {
+                    s.setRoomName(r.getTenPhong() + " (" + r.getSoPhong() + ")");
+                }
+            }
+        }
     }
 
     public String nextPatientId() {
@@ -560,6 +572,10 @@ public class MockDataStore {
 
     public String nextLotId() {
         return String.format("LO%03d", lotSeq.getAndIncrement());
+    }
+
+    public String nextLabTypeId() {
+        return String.format("XN%03d", labTypeSeq.getAndIncrement());
     }
 }
 

@@ -10,6 +10,7 @@ public class StaffFormDto {
     private String vaiTro;
     private String trangThai;
     private String specialtyDetail;
+    private String idPk;
 
     public StaffFormDto() {}
 
@@ -39,5 +40,8 @@ public class StaffFormDto {
 
     public String getSpecialtyDetail() { return specialtyDetail; }
     public void setSpecialtyDetail(String specialtyDetail) { this.specialtyDetail = specialtyDetail; }
+
+    public String getIdPk() { return idPk; }
+    public void setIdPk(String idPk) { this.idPk = idPk; }
 }
 

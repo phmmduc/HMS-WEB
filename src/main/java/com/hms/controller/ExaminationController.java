@@ -98,7 +98,13 @@ public class ExaminationController {
 
         Patient patient = patientService.getPatientById(exam.getIdBn());
         List<Diagnosis> diagnoses = staffService.getAllDiagnoses();
-        List<LabType> labTypes = staffService.getAllLabTypes();
+        List<LabType> labTypes = staffService.getActiveLabTypes();
+        for (LabResult lr : exam.getLabResults()) {
+            LabType lt = staffService.getLabTypeById(lr.getIdLxn());
+            if (lt != null && !labTypes.contains(lt)) {
+                labTypes.add(lt);
+            }
+        }
         List<Medicine> medicines = pharmacyService.getAllMedicines();
         List<MedicalRecord> medicalRecords = patientService.getMedicalRecordsByPatient(exam.getIdBn());
 

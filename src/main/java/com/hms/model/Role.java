@@ -36,11 +36,43 @@ public enum Role {
     public String getStartUrl() { return startUrl; }
     public String getDescription() { return description; }
 
+    public String getToneClass() {
+        return switch (this) {
+            case DOCTOR -> "role-tone-cyan";
+            case NURSE -> "role-tone-green";
+            case PHARMACIST -> "role-tone-violet";
+            case CASHIER -> "role-tone-orange";
+            default -> "role-tone-blue";
+        };
+    }
+
+    public String getAccentColor() {
+        return switch (this) {
+            case DOCTOR -> "#0891b2";
+            case NURSE -> "#059669";
+            case PHARMACIST -> "#7c3aed";
+            case CASHIER -> "#ea580c";
+            default -> "#0284c7";
+        };
+    }
+
     public static Role fromKey(String key) {
-        if (key == null) return MANAGER;
+        if (key == null || key.isBlank()) return MANAGER;
+        String trimmed = key.trim();
         for (Role r : values()) {
-            if (r.key.equalsIgnoreCase(key.trim())) return r;
+            if (r.key.equalsIgnoreCase(trimmed)
+                    || r.name().equalsIgnoreCase(trimmed)
+                    || r.shortLabel.equalsIgnoreCase(trimmed)
+                    || r.label.equalsIgnoreCase(trimmed)) {
+                return r;
+            }
         }
+        if ("bac-si".equalsIgnoreCase(trimmed) || "bacsi".equalsIgnoreCase(trimmed)) return DOCTOR;
+        if ("y-ta".equalsIgnoreCase(trimmed) || "dieu-duong".equalsIgnoreCase(trimmed)) return NURSE;
+        if ("duoc-si".equalsIgnoreCase(trimmed) || "duocsi".equalsIgnoreCase(trimmed)) return PHARMACIST;
+        if ("thu-ngan".equalsIgnoreCase(trimmed) || "thungan".equalsIgnoreCase(trimmed)) return CASHIER;
+        if ("quan-ly".equalsIgnoreCase(trimmed) || "quanly".equalsIgnoreCase(trimmed)) return MANAGER;
+
         return MANAGER;
     }
 }

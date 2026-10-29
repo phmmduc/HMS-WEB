@@ -167,6 +167,14 @@
                                                         <span>Chuyên môn / Học vị / Ghi chú</span>
                                                         <input type="text" name="specialtyDetail" th:value="${st.specialtyDetail}" placeholder="Ví dụ: Thạc sĩ · Nội khoa">
                                                     </label>
+
+                                                    <label class="form-field full">
+                                                        <span>Phòng khám phân công (dành cho Bác sĩ)</span>
+                                                        <select name="idPk">
+                                                            <option value="">-- Chưa phân công phòng khám --</option>
+                                                            <option th:each="r : ${rooms}" th:value="${r.idPk}" th:text="${r.tenPhong + ' · ' + r.soPhong}" th:selected="${st.idPk == r.idPk}"></option>
+                                                        </select>
+                                                    </label>
                                                 </div>
 
                                                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -424,6 +432,14 @@
                 <label class="form-field full">
                     <span>Chuyên môn / Học vị</span>
                     <input type="text" name="specialtyDetail" placeholder="Ví dụ: Thạc sĩ · Ngoại khoa">
+                </label>
+
+                <label class="form-field full">
+                    <span>Phòng khám phân công (dành cho Bác sĩ)</span>
+                    <select name="idPk">
+                        <option value="">-- Chưa phân công phòng khám --</option>
+                        <option th:each="r : ${rooms}" th:value="${r.idPk}" th:text="${r.tenPhong + ' · ' + r.soPhong}"></option>
+                    </select>
                 </label>
             </div>
 

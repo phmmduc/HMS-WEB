@@ -14,6 +14,7 @@ public class Staff {
     private String trangThai; // "Đang làm việc"
     private String specialtyDetail; // e.g. "Thạc sĩ · Nội tổng hợp" hoặc "Điều dưỡng đại học"
     private String idPk; // Mã phòng khám phân công (dành cho Bác sĩ)
+    private String roomName;
 
     public Staff() {}
 
@@ -74,5 +75,8 @@ public class Staff {
 
     public String getIdPk() { return idPk; }
     public void setIdPk(String idPk) { this.idPk = idPk; }
+
+    public String getRoomName() { return roomName; }
+    public void setRoomName(String roomName) { this.roomName = roomName; }
 }
 

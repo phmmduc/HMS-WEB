@@ -28,6 +28,13 @@ public class MockStaffService {
                 .collect(Collectors.toList());
     }
 
+    public List<Staff> getDoctorsByRoom(String idPk) {
+        if (idPk == null || idPk.isBlank()) return Collections.emptyList();
+        return getDoctors().stream()
+                .filter(s -> idPk.equalsIgnoreCase(s.getIdPk()))
+                .collect(Collectors.toList());
+    }
+
     public List<Staff> getStaffByRole(String roleName) {
         if (roleName == null || roleName.isBlank()) return getAllStaff();
         return getAllStaff().stream()
@@ -55,7 +62,8 @@ public class MockStaffService {
                 dto.getEmail() != null ? dto.getEmail().trim() : "",
                 dto.getVaiTro() != null ? dto.getVaiTro().trim() : "Bác sĩ",
                 dto.getTrangThai() != null ? dto.getTrangThai().trim() : "Đang làm việc",
-                dto.getSpecialtyDetail() != null ? dto.getSpecialtyDetail().trim() : ""
+                dto.getSpecialtyDetail() != null ? dto.getSpecialtyDetail().trim() : "",
+                dto.getIdPk() != null && !dto.getIdPk().isBlank() ? dto.getIdPk().trim() : null
         );
         store.staffMembers.put(idNv, staff);
         return staff;
@@ -75,6 +83,9 @@ public class MockStaffService {
         if (dto.getVaiTro() != null && !dto.getVaiTro().isBlank()) staff.setVaiTro(dto.getVaiTro().trim());
         if (dto.getTrangThai() != null && !dto.getTrangThai().isBlank()) staff.setTrangThai(dto.getTrangThai().trim());
         if (dto.getSpecialtyDetail() != null) staff.setSpecialtyDetail(dto.getSpecialtyDetail().trim());
+        if (dto.getIdPk() != null) {
+            staff.setIdPk(dto.getIdPk().isBlank() ? null : dto.getIdPk().trim());
+        }
 
         return staff;
     }
@@ -193,6 +204,68 @@ public class MockStaffService {
         return new ArrayList<>(store.labTypes.values()).stream()
                 .sorted((a, b) -> a.getIdLxn().compareTo(b.getIdLxn()))
                 .collect(Collectors.toList());
+    }
+
+    public List<LabType> getActiveLabTypes() {
+        return getAllLabTypes().stream()
+                .filter(lt -> lt.getTrangThai() == null || "Hoạt động".equalsIgnoreCase(lt.getTrangThai()))
+                .collect(Collectors.toList());
+    }
+
+    public LabType getLabTypeById(String idLxn) {
+        if (idLxn == null) return null;
+        return store.labTypes.get(idLxn.trim().toUpperCase());
+    }
+
+    public LabType createLabType(LabType lt) {
+        if (lt.getTenLxn() == null || lt.getTenLxn().isBlank()) {
+            throw new IllegalArgumentException("Tên loại xét nghiệm không được để trống!");
+        }
+        if (lt.getChiPhi() == null || lt.getChiPhi() < 0) {
+            throw new IllegalArgumentException("Chi phí xét nghiệm phải lớn hơn hoặc bằng 0!");
+        }
+
+        String id = (lt.getIdLxn() != null && !lt.getIdLxn().isBlank())
+                ? lt.getIdLxn().trim().toUpperCase()
+                : store.nextLabTypeId();
+
+        if (store.labTypes.containsKey(id)) {
+            throw new IllegalStateException("Mã loại xét nghiệm [" + id + "] đã tồn tại trong hệ thống!");
+        }
+
+        String status = (lt.getTrangThai() != null && !lt.getTrangThai().isBlank())
+                ? lt.getTrangThai().trim()
+                : "Hoạt động";
+
+        LabType created = new LabType(id, lt.getTenLxn().trim(), lt.getChiPhi(), status);
+        store.labTypes.put(id, created);
+        return created;
+    }
+
+    public void deleteLabType(String idLxn) {
+        if (idLxn == null || idLxn.isBlank()) return;
+        String targetId = idLxn.trim().toUpperCase();
+
+        boolean isReferenced = store.labResults.values().stream()
+                .anyMatch(lr -> targetId.equalsIgnoreCase(lr.getIdLxn()));
+        if (isReferenced) {
+            throw new IllegalStateException("Không thể xóa loại xét nghiệm " + targetId + " vì đã được sử dụng trong phiếu chỉ định / kết quả xét nghiệm!");
+        }
+
+        store.labTypes.remove(targetId);
+    }
+
+    public LabType toggleLabTypeStatus(String idLxn) {
+        if (idLxn == null) return null;
+        LabType lt = store.labTypes.get(idLxn.trim().toUpperCase());
+        if (lt != null) {
+            if ("Hoạt động".equalsIgnoreCase(lt.getTrangThai())) {
+                lt.setTrangThai("Ngừng hoạt động");
+            } else {
+                lt.setTrangThai("Hoạt động");
+            }
+        }
+        return lt;
     }
 
     public List<Diagnosis> getAllDiagnoses() {

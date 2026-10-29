@@ -194,7 +194,7 @@
             </button>
         </div>
 
-        <form th:action="@{/registration/exam}" method="post" th:object="${examForm}">
+        <form id="form-create-exam" th:action="@{/registration/exam}" method="post" th:object="${examForm}">
             <div class="form-grid">
                 <label class="form-field full">
                     <span>Chọn bệnh nhân *</span>
@@ -206,7 +206,7 @@
 
                 <label class="form-field">
                     <span>Phòng khám *</span>
-                    <select name="idPk" required>
+                    <select name="idPk" id="exam-room-select" required>
                         <option value="">-- Chọn phòng khám --</option>
                         <option th:each="r : ${rooms}" th:value="${r.idPk}" th:text="${r.tenPhong + ' · ' + r.soPhong}">Phòng khám Nội</option>
                     </select>
@@ -214,9 +214,9 @@
 
                 <label class="form-field">
                     <span>Bác sĩ phụ trách *</span>
-                    <select name="idNv" required>
-                        <option value="">-- Chọn bác sĩ --</option>
-                        <option th:each="d : ${doctors}" th:value="${d.idNv}" th:text="${d.hoTen + ' (' + d.idNv + ')'}" th:selected="${currentStaff != null && currentStaff.idNv == d.idNv}">BS. Nguyễn Hoàng An</option>
+                    <select name="idNv" id="exam-doctor-select" required disabled>
+                        <option value="">-- Vui lòng chọn phòng khám trước --</option>
+                        <option th:each="d : ${doctors}" th:value="${d.idNv}" th:attr="data-room-id=${d.idPk}" th:text="${d.hoTen + ' (' + d.idNv + ')'}">BS. Nguyễn Hoàng An</option>
                     </select>
                 </label>
 
@@ -248,7 +248,7 @@
 
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                 <button type="button" class="btn btn-secondary" data-close-modal>Hủy</button>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Tạo phiếu khám</button>
+                <button type="submit" id="btn-submit-exam" class="btn btn-primary"><i class="fa-solid fa-check"></i> Tạo phiếu khám</button>
             </div>
         </form>
     </div>

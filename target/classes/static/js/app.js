@@ -198,9 +198,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 5. FORM DOUBLE-SUBMIT PROTECTION
   document.querySelectorAll("form").forEach(function (form) {
-    form.addEventListener("submit", function () {
+    form.addEventListener("submit", function (e) {
+      if (form.getAttribute("data-submitting") === "true") {
+        e.preventDefault();
+        return false;
+      }
+      form.setAttribute("data-submitting", "true");
       var submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn && !submitBtn.disabled) {
+      if (submitBtn) {
         setTimeout(function () {
           submitBtn.disabled = true;
           submitBtn.style.opacity = "0.7";
@@ -208,4 +213,79 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
+
+  // 6. EXAM REGISTRATION: DYNAMIC FILTER DOCTORS BY CLINIC ROOM
+  var examRoomSelect = document.getElementById("exam-room-select");
+  var examDoctorSelect = document.getElementById("exam-doctor-select");
+
+  if (examRoomSelect && examDoctorSelect) {
+    // Cache the initial list of doctors from DOM
+    var allDoctorOptions = [];
+    var initialDoctorOptions = examDoctorSelect.querySelectorAll("option[data-room-id]");
+    initialDoctorOptions.forEach(function (opt) {
+      allDoctorOptions.push({
+        value: opt.value,
+        text: opt.textContent.trim(),
+        roomId: (opt.getAttribute("data-room-id") || "").trim()
+      });
+    });
+
+    function updateExamDoctorDropdown(keepSelectedDoctor) {
+      var selectedRoomId = examRoomSelect.value ? examRoomSelect.value.trim() : "";
+      var previousDoctorValue = keepSelectedDoctor ? examDoctorSelect.value : "";
+
+      if (!selectedRoomId) {
+        // Chưa chọn phòng khám
+        examDoctorSelect.innerHTML = '<option value="">-- Vui lòng chọn phòng khám trước --</option>';
+        examDoctorSelect.disabled = true;
+        examDoctorSelect.value = "";
+        return;
+      }
+
+      // Lọc danh sách bác sĩ theo ID phòng khám
+      var matchingDoctors = allDoctorOptions.filter(function (doc) {
+        return doc.roomId === selectedRoomId;
+      });
+
+      if (matchingDoctors.length === 0) {
+        // Phòng khám không có bác sĩ
+        examDoctorSelect.innerHTML = '<option value="">-- Không có bác sĩ thuộc phòng khám này --</option>';
+        examDoctorSelect.disabled = true;
+        examDoctorSelect.value = "";
+      } else {
+        // Phòng khám có bác sĩ
+        examDoctorSelect.disabled = false;
+        var html = '<option value="">-- Chọn bác sĩ phụ trách --</option>';
+        matchingDoctors.forEach(function (doc) {
+          var isSelected = (previousDoctorValue && previousDoctorValue === doc.value) ? " selected" : "";
+          html += '<option value="' + doc.value + '" data-room-id="' + doc.roomId + '"' + isSelected + '>' + doc.text + '</option>';
+        });
+        examDoctorSelect.innerHTML = html;
+
+        // Nếu bác sĩ trước đó không thuộc phòng khám mới, reset lựa chọn
+        var isStillValid = matchingDoctors.some(function (d) { return d.value === previousDoctorValue; });
+        if (!isStillValid) {
+          examDoctorSelect.value = "";
+        }
+      }
+    }
+
+    // Sự kiện khi thay đổi phòng khám
+    examRoomSelect.addEventListener("change", function () {
+      updateExamDoctorDropdown(false);
+    });
+
+    // Khi người dùng bấm nút mở modal Đăng ký khám mới
+    document.addEventListener("click", function (e) {
+      var btnOpen = e.target.closest('[data-open-modal="modal-create-exam"]');
+      if (btnOpen) {
+        setTimeout(function () {
+          updateExamDoctorDropdown(true);
+        }, 50);
+      }
+    });
+
+    // Khởi tạo trạng thái ban đầu
+    updateExamDoctorDropdown(false);
+  }
 });

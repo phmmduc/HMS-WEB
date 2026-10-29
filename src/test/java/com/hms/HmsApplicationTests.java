@@ -1,6 +1,7 @@
 package com.hms;
 
 import com.hms.dto.*;
+import com.hms.controller.GlobalControllerAdvice;
 import com.hms.mock.MockBillingService;
 import com.hms.mock.MockDataStore;
 import com.hms.mock.MockExaminationService;
@@ -378,17 +379,18 @@ class HmsApplicationTests {
         long sumPaidMonth = monthReport.getChartPaidData().stream().mapToLong(Long::longValue).sum();
         assertThat(monthReport.getTotalPaid()).isEqualTo(sumPaidMonth);
 
-        // 2. Click drill-down vào ngày cụ thể (2026-10-28)
-        RevenueReportDto dayClickReport = billingService.getRevenueReport("month", 2026, 10, null, "2026-10-28");
-        assertThat(dayClickReport.getSelectedKey()).isEqualTo("2026-10-28");
-        List<Invoice> dayInvoices = billingService.filterInvoices("", "all", "month", 2026, 10, null, "2026-10-28");
+        // 2. Click drill-down vào ngày cụ thể (ngày hôm nay có hóa đơn HD001 đã thanh toán)
+        String todayStr = LocalDate.now().toString();
+        RevenueReportDto dayClickReport = billingService.getRevenueReport("month", LocalDate.now().getYear(), LocalDate.now().getMonthValue(), null, todayStr);
+        assertThat(dayClickReport.getSelectedKey()).isEqualTo(todayStr);
+        List<Invoice> dayInvoices = billingService.filterInvoices("", "all", "month", LocalDate.now().getYear(), LocalDate.now().getMonthValue(), null, todayStr);
         assertThat(dayInvoices).isNotEmpty();
         for (Invoice inv : dayInvoices) {
-            assertThat(inv.getEffectiveDate()).isEqualTo("2026-10-28");
+            assertThat(inv.getEffectiveDate()).isEqualTo(todayStr);
         }
 
         // 3. Báo cáo theo năm 2026: Trục hoành có đủ 12 tháng
-        RevenueReportDto yearReport = billingService.getRevenueReport("year", 2026, null, null, null);
+        RevenueReportDto yearReport = billingService.getRevenueReport("year", LocalDate.now().getYear(), null, null, null);
         assertThat(yearReport.getChartLabels()).hasSize(12);
         long sumPaidYear = yearReport.getChartPaidData().stream().mapToLong(Long::longValue).sum();
         assertThat(yearReport.getTotalPaid()).isEqualTo(sumPaidYear);
@@ -396,9 +398,9 @@ class HmsApplicationTests {
         // 4. MockMvc kiểm tra trang /billing
         mockMvc.perform(get("/billing")
                         .param("view", "month")
-                        .param("year", "2026")
-                        .param("month", "10")
-                        .param("selectedKey", "2026-10-28"))
+                        .param("year", String.valueOf(LocalDate.now().getYear()))
+                        .param("month", String.valueOf(LocalDate.now().getMonthValue()))
+                        .param("selectedKey", todayStr))
                 .andExpect(status().isOk())
                 .andExpect(view().name("billing/index"))
                 .andExpect(model().attributeExists("report"))
@@ -519,5 +521,365 @@ class HmsApplicationTests {
         boolean noPresc = dataStore.examinations.values().stream().anyMatch(e -> !e.hasPrescription());
         assertThat(hasPresc).isTrue();
         assertThat(noPresc).isTrue();
+    }
+
+    @Test
+    void testDoctorFilteringByRoomService() {
+        // PK01 has NV001
+        List<Staff> pk01Doctors = staffService.getDoctorsByRoom("PK01");
+        assertThat(pk01Doctors).extracting(Staff::getIdNv).containsExactly("NV001");
+
+        // PK02 has NV002
+        List<Staff> pk02Doctors = staffService.getDoctorsByRoom("PK02");
+        assertThat(pk02Doctors).extracting(Staff::getIdNv).containsExactly("NV002");
+
+        // PK03 (Lab) has no doctor
+        List<Staff> pk03Doctors = staffService.getDoctorsByRoom("PK03");
+        assertThat(pk03Doctors).isEmpty();
+
+        // PK04 (Pediatrics) has NV011
+        List<Staff> pk04Doctors = staffService.getDoctorsByRoom("PK04");
+        assertThat(pk04Doctors).extracting(Staff::getIdNv).containsExactly("NV011");
+
+        // Null/empty room
+        assertThat(staffService.getDoctorsByRoom(null)).isEmpty();
+        assertThat(staffService.getDoctorsByRoom("")).isEmpty();
+    }
+
+    @Test
+    void testDoctorFilteringInRegistrationTemplate() throws Exception {
+        var mvcResult = mockMvc.perform(get("/registration"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String html = mvcResult.getResponse().getContentAsString();
+        // Check element IDs
+        assertThat(html).contains("id=\"exam-room-select\"");
+        assertThat(html).contains("id=\"exam-doctor-select\"");
+        // Check data-room-id attributes for doctors
+        assertThat(html).contains("data-room-id=\"PK01\"");
+        assertThat(html).contains("data-room-id=\"PK02\"");
+        assertThat(html).contains("data-room-id=\"PK04\"");
+    }
+
+    @Test
+    void testDoctorsByRoomRestEndpoint() throws Exception {
+        mockMvc.perform(get("/registration/doctors-by-room").param("roomId", "PK01"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].idNv").value("NV001"))
+                .andExpect(jsonPath("$[0].hoTen").value("BS. Nguyễn Hoàng An"));
+
+        mockMvc.perform(get("/registration/doctors-by-room").param("roomId", "PK03"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("[]"));
+    }
+
+    @Test
+    void testRegistrationDoctorRoomValidationRejectMismatch() throws Exception {
+        // NV001 belongs to PK01, attempt to assign to PK02 (Tim mạch)
+        mockMvc.perform(post("/registration/exam")
+                        .param("idBn", "BN001")
+                        .param("idPk", "PK02")
+                        .param("idNv", "NV001")
+                        .param("ngayDky", "2026-10-28")
+                        .param("thoiGianKham", "09:30")
+                        .param("phiKham", "150000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/registration?tab=exams"))
+                .andExpect(flash().attributeExists("errorMessage"));
+
+        // Verify that exam was NOT created
+        boolean exists = dataStore.examinations.values().stream()
+                .anyMatch(ex -> "PK02".equals(ex.getIdPk()) && "NV001".equals(ex.getIdNv()));
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void testRegistrationDoctorRoomValidationRejectRoomWithNoDoctor() throws Exception {
+        // PK03 has no doctor, attempting to register exam with any doctor should fail
+        mockMvc.perform(post("/registration/exam")
+                        .param("idBn", "BN001")
+                        .param("idPk", "PK03")
+                        .param("idNv", "NV001"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/registration?tab=exams"))
+                .andExpect(flash().attributeExists("errorMessage"));
+    }
+
+    @Test
+    void testRegistrationDoctorRoomValidationSuccessMatch() throws Exception {
+        // NV002 belongs to PK02, valid assignment
+        mockMvc.perform(post("/registration/exam")
+                        .param("idBn", "BN002")
+                        .param("idPk", "PK02")
+                        .param("idNv", "NV002")
+                        .param("ngayDky", "2026-10-28")
+                        .param("thoiGianKham", "10:00")
+                        .param("phiKham", "150000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/registration?tab=exams"))
+                .andExpect(flash().attributeExists("successMessage"));
+
+        // Verify that exam WAS created
+        boolean exists = dataStore.examinations.values().stream()
+                .anyMatch(ex -> "PK02".equals(ex.getIdPk()) && "NV002".equals(ex.getIdNv()) && "BN002".equals(ex.getIdBn()));
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    void testDoctorReassignmentSync() throws Exception {
+        // Reassign NV001 to PK02
+        StaffFormDto dto = new StaffFormDto();
+        dto.setIdNv("NV001");
+        dto.setHoTen("BS. Nguyễn Hoàng An");
+        dto.setIdPk("PK02");
+        staffService.updateStaff(dto);
+
+        // Now PK02 should have NV001
+        List<Staff> pk02Doctors = staffService.getDoctorsByRoom("PK02");
+        assertThat(pk02Doctors).extracting(Staff::getIdNv).contains("NV001", "NV002");
+
+        // Now creating exam with PK02 and NV001 should succeed!
+        mockMvc.perform(post("/registration/exam")
+                        .param("idBn", "BN003")
+                        .param("idPk", "PK02")
+                        .param("idNv", "NV001")
+                        .param("ngayDky", "2026-10-28")
+                        .param("thoiGianKham", "10:30")
+                        .param("phiKham", "150000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/registration?tab=exams"))
+                .andExpect(flash().attributeExists("successMessage"));
+    }
+
+    // ==========================================
+    // CHỨC NĂNG A: QUẢN LÝ LOẠI XÉT NGHIỆM CHO Y TÁ
+    // ==========================================
+
+    @Test
+    void testLaboratoryTypesViewRendersCorrectly() throws Exception {
+        var mvcResult = mockMvc.perform(get("/laboratory/types"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("laboratory/types"))
+                .andExpect(model().attributeExists("labTypes"))
+                .andExpect(model().attributeExists("totalCount"))
+                .andExpect(model().attributeExists("activeCount"))
+                .andExpect(model().attributeExists("inactiveCount"))
+                .andReturn();
+
+        String html = mvcResult.getResponse().getContentAsString();
+        assertThat(html).contains("Quản lý loại xét nghiệm");
+        assertThat(html).contains("id=\"modal-add-lab-type\"");
+        assertThat(html).contains("XN001");
+        assertThat(html).contains("Công thức máu");
+    }
+
+    @Test
+    void testAddLabTypeSuccessAndSyncWithExamination() throws Exception {
+        // 1. Add new lab type XN005
+        mockMvc.perform(post("/laboratory/types/create")
+                        .param("idLxn", "XN005")
+                        .param("tenLxn", "Đo điện tim (ECG)")
+                        .param("chiPhi", "150000")
+                        .param("trangThai", "Hoạt động"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/laboratory/types"))
+                .andExpect(flash().attributeExists("successMessage"));
+
+        // 2. Verify stored in MockDataStore
+        LabType created = staffService.getLabTypeById("XN005");
+        assertThat(created).isNotNull();
+        assertThat(created.getTenLxn()).isEqualTo("Đo điện tim (ECG)");
+        assertThat(created.getChiPhi()).isEqualTo(150000L);
+        assertThat(created.getTrangThai()).isEqualTo("Hoạt động");
+
+        // 3. Verify it is present in active lab types
+        List<LabType> activeLabs = staffService.getActiveLabTypes();
+        assertThat(activeLabs).extracting(LabType::getIdLxn).contains("XN005");
+
+        // 4. Verify it synchronizes into doctor's consultation order form at /examination/detail/PKM001
+        var examResult = mockMvc.perform(get("/examination/detail/PKM001"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String examHtml = examResult.getResponse().getContentAsString();
+        assertThat(examHtml).contains("Đo điện tim (ECG)");
+        assertThat(examHtml).contains("value=\"XN005\"");
+    }
+
+    @Test
+    void testAddLabTypeDuplicateIdRejection() throws Exception {
+        // Attempt to create lab type with existing ID XN001
+        mockMvc.perform(post("/laboratory/types/create")
+                        .param("idLxn", "XN001")
+                        .param("tenLxn", "Trùng mã xét nghiệm")
+                        .param("chiPhi", "200000")
+                        .param("trangThai", "Hoạt động"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/laboratory/types"))
+                .andExpect(flash().attributeExists("errorMessage"));
+    }
+
+    @Test
+    void testDeleteLabTypeReferencedRejection() throws Exception {
+        // XN001 is referenced in labResults (KQ001, KQ004)
+        mockMvc.perform(post("/laboratory/types/delete")
+                        .param("idLxn", "XN001"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/laboratory/types"))
+                .andExpect(flash().attributeExists("errorMessage"));
+
+        // Must NOT be deleted
+        assertThat(staffService.getLabTypeById("XN001")).isNotNull();
+    }
+
+    @Test
+    void testDeleteLabTypeUnreferencedSuccess() throws Exception {
+        // XN004 is NOT referenced in any lab result
+        mockMvc.perform(post("/laboratory/types/delete")
+                        .param("idLxn", "XN004"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/laboratory/types"))
+                .andExpect(flash().attributeExists("successMessage"));
+
+        // Must be deleted
+        assertThat(staffService.getLabTypeById("XN004")).isNull();
+    }
+
+    @Test
+    void testToggleLabTypeStatus() throws Exception {
+        // Toggle XN002 from "Hoạt động" to "Ngừng hoạt động"
+        mockMvc.perform(post("/laboratory/types/toggle")
+                        .param("idLxn", "XN002"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/laboratory/types"))
+                .andExpect(flash().attributeExists("successMessage"));
+
+        LabType lt = staffService.getLabTypeById("XN002");
+        assertThat(lt.getTrangThai()).isEqualTo("Ngừng hoạt động");
+
+        // Active list should not contain XN002
+        assertThat(staffService.getActiveLabTypes()).extracting(LabType::getIdLxn).doesNotContain("XN002");
+    }
+
+    // ==========================================
+    // CHỨC NĂNG B: LUỒNG CHỌN VAI TRÒ -> CHỌN NHÂN SỰ
+    // ==========================================
+
+    @Test
+    void testRoleSelectionRedirectsToStaffSelection() throws Exception {
+        // 1. Doctor role selection redirects to /select-staff?role=doctor
+        mockMvc.perform(get("/select-role/doctor"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/select-staff?role=doctor"));
+
+        // 2. Nurse role selection redirects to /select-staff?role=nurse
+        mockMvc.perform(get("/select-role/nurse"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/select-staff?role=nurse"));
+
+        // 3. Manager role selection redirects to /select-staff?role=manager
+        mockMvc.perform(get("/select-role/manager"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/select-staff?role=manager"));
+
+        // 4. Pharmacist role selection redirects to /select-staff?role=pharmacist
+        mockMvc.perform(get("/select-role/pharmacist"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/select-staff?role=pharmacist"));
+
+        // 5. Cashier role selection redirects to /select-staff?role=cashier
+        mockMvc.perform(get("/select-role/cashier"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/select-staff?role=cashier"));
+    }
+
+    @Test
+    void testStaffSelectionPageFiltersByRoleCorrectly() throws Exception {
+        // A. Doctor role: only doctors shown
+        var docResult = mockMvc.perform(get("/select-staff").param("role", "doctor"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/staff-select"))
+                .andExpect(model().attributeExists("staffList"))
+                .andReturn();
+        @SuppressWarnings("unchecked")
+        List<Staff> doctors = (List<Staff>) docResult.getModelAndView().getModel().get("staffList");
+        assertThat(doctors).isNotEmpty();
+        assertThat(doctors).allMatch(s -> "Bác sĩ".equalsIgnoreCase(s.getVaiTro()));
+        assertThat(doctors).extracting(Staff::getIdNv).contains("NV001", "NV002", "NV011");
+
+        // B. Nurse role: only nurses shown
+        var nurseResult = mockMvc.perform(get("/select-staff").param("role", "nurse"))
+                .andExpect(status().isOk())
+                .andReturn();
+        @SuppressWarnings("unchecked")
+        List<Staff> nurses = (List<Staff>) nurseResult.getModelAndView().getModel().get("staffList");
+        assertThat(nurses).isNotEmpty();
+        assertThat(nurses).allMatch(s -> "Y tá".equalsIgnoreCase(s.getVaiTro()));
+        assertThat(nurses).extracting(Staff::getIdNv).contains("NV003", "NV007");
+
+        // C. Pharmacist role: only pharmacists shown
+        var rxResult = mockMvc.perform(get("/select-staff").param("role", "pharmacist"))
+                .andExpect(status().isOk())
+                .andReturn();
+        @SuppressWarnings("unchecked")
+        List<Staff> pharmacists = (List<Staff>) rxResult.getModelAndView().getModel().get("staffList");
+        assertThat(pharmacists).isNotEmpty();
+        assertThat(pharmacists).allMatch(s -> "Dược sĩ".equalsIgnoreCase(s.getVaiTro()));
+        assertThat(pharmacists).extracting(Staff::getIdNv).contains("NV004", "NV008");
+
+        // D. Cashier role: only cashiers shown
+        var cashResult = mockMvc.perform(get("/select-staff").param("role", "cashier"))
+                .andExpect(status().isOk())
+                .andReturn();
+        @SuppressWarnings("unchecked")
+        List<Staff> cashiers = (List<Staff>) cashResult.getModelAndView().getModel().get("staffList");
+        assertThat(cashiers).isNotEmpty();
+        assertThat(cashiers).allMatch(s -> "Thu ngân".equalsIgnoreCase(s.getVaiTro()));
+        assertThat(cashiers).extracting(Staff::getIdNv).contains("NV005", "NV009");
+
+        // E. Manager role: only managers shown
+        var mgrResult = mockMvc.perform(get("/select-staff").param("role", "manager"))
+                .andExpect(status().isOk())
+                .andReturn();
+        @SuppressWarnings("unchecked")
+        List<Staff> managers = (List<Staff>) mgrResult.getModelAndView().getModel().get("staffList");
+        assertThat(managers).isNotEmpty();
+        assertThat(managers).allMatch(s -> "Quản lý".equalsIgnoreCase(s.getVaiTro()));
+        assertThat(managers).extracting(Staff::getIdNv).contains("NV006", "NV010");
+    }
+
+    @Test
+    void testChooseStaffSetsSessionAndRedirectsToRoleWorkspace() throws Exception {
+        // Choose Doctor NV001 -> should redirect to /examination
+        mockMvc.perform(get("/choose-staff/NV001"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/examination"))
+                .andExpect(request().sessionAttribute(GlobalControllerAdvice.SESSION_ROLE, Role.DOCTOR))
+                .andExpect(request().sessionAttribute(GlobalControllerAdvice.SESSION_STAFF, staffService.getStaffById("NV001")));
+
+        // Choose Nurse NV003 -> should redirect to /registration
+        mockMvc.perform(get("/choose-staff/NV003"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/registration"))
+                .andExpect(request().sessionAttribute(GlobalControllerAdvice.SESSION_ROLE, Role.NURSE))
+                .andExpect(request().sessionAttribute(GlobalControllerAdvice.SESSION_STAFF, staffService.getStaffById("NV003")));
+
+        // Choose Pharmacist NV004 -> should redirect to /pharmacy
+        mockMvc.perform(get("/choose-staff/NV004"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/pharmacy"))
+                .andExpect(request().sessionAttribute(GlobalControllerAdvice.SESSION_ROLE, Role.PHARMACIST));
+
+        // Choose Cashier NV005 -> should redirect to /billing
+        mockMvc.perform(get("/choose-staff/NV005"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/billing"))
+                .andExpect(request().sessionAttribute(GlobalControllerAdvice.SESSION_ROLE, Role.CASHIER));
+
+        // Choose Manager NV006 -> should redirect to /dashboard
+        mockMvc.perform(get("/choose-staff/NV006"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"))
+                .andExpect(request().sessionAttribute(GlobalControllerAdvice.SESSION_ROLE, Role.MANAGER));
     }
 }

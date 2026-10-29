@@ -2,6 +2,7 @@ package com.hms.controller;
 
 import com.hms.mock.MockStaffService;
 import com.hms.model.LabResult;
+import com.hms.model.LabType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +46,76 @@ public class LaboratoryController {
         model.addAttribute("status", status);
 
         return "laboratory/index";
+    }
+
+    @GetMapping("/types")
+    public String labTypes(@RequestParam(required = false) String search,
+                           @RequestParam(required = false) String status,
+                           Model model) {
+        List<LabType> list = staffService.getAllLabTypes();
+        if (search != null && !search.trim().isEmpty()) {
+            String kw = search.trim().toLowerCase();
+            list = list.stream()
+                    .filter(l -> (l.getIdLxn() + " " + l.getTenLxn()).toLowerCase().contains(kw))
+                    .collect(Collectors.toList());
+        }
+        if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
+            list = list.stream()
+                    .filter(l -> status.equalsIgnoreCase(l.getTrangThai()))
+                    .collect(Collectors.toList());
+        }
+
+        long activeCount = staffService.getAllLabTypes().stream()
+                .filter(l -> "Hoạt động".equalsIgnoreCase(l.getTrangThai())).count();
+        long inactiveCount = staffService.getAllLabTypes().stream()
+                .filter(l -> !"Hoạt động".equalsIgnoreCase(l.getTrangThai())).count();
+
+        model.addAttribute("activeNav", "lab-types");
+        model.addAttribute("pageTitle", "Quản lý loại xét nghiệm");
+        model.addAttribute("labTypes", list);
+        model.addAttribute("totalCount", staffService.getAllLabTypes().size());
+        model.addAttribute("activeCount", activeCount);
+        model.addAttribute("inactiveCount", inactiveCount);
+        model.addAttribute("search", search);
+        model.addAttribute("status", status);
+        model.addAttribute("newLabType", new LabType());
+
+        return "laboratory/types";
+    }
+
+    @PostMapping("/types/create")
+    public String createLabType(@ModelAttribute LabType labType, RedirectAttributes ra) {
+        try {
+            LabType created = staffService.createLabType(labType);
+            ra.addFlashAttribute("successMessage", "Đã thêm loại xét nghiệm mới: " + created.getTenLxn() + " (" + created.getIdLxn() + ")");
+        } catch (Exception ex) {
+            ra.addFlashAttribute("errorMessage", "Không thể thêm loại xét nghiệm: " + ex.getMessage());
+        }
+        return "redirect:/laboratory/types";
+    }
+
+    @PostMapping("/types/delete")
+    public String deleteLabType(@RequestParam String idLxn, RedirectAttributes ra) {
+        try {
+            staffService.deleteLabType(idLxn);
+            ra.addFlashAttribute("successMessage", "Đã xóa loại xét nghiệm " + idLxn + " thành công.");
+        } catch (Exception ex) {
+            ra.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/laboratory/types";
+    }
+
+    @PostMapping("/types/toggle")
+    public String toggleLabType(@RequestParam String idLxn, RedirectAttributes ra) {
+        try {
+            LabType updated = staffService.toggleLabTypeStatus(idLxn);
+            if (updated != null) {
+                ra.addFlashAttribute("successMessage", "Đã chuyển trạng thái " + updated.getIdLxn() + " sang: " + updated.getTrangThai());
+            }
+        } catch (Exception ex) {
+            ra.addFlashAttribute("errorMessage", "Không thể cập nhật trạng thái: " + ex.getMessage());
+        }
+        return "redirect:/laboratory/types";
     }
 
     @PostMapping("/result")

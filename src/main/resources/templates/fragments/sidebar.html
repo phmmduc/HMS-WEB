@@ -64,6 +64,15 @@
             <span>Xét nghiệm cận lâm sàng</span>
         </a>
 
+        <!-- LAB TYPES: Nurse, Manager -->
+        <a th:if="${currentRole.key == 'nurse' or currentRole.key == 'manager'}"
+           th:href="@{/laboratory/types}"
+           th:classappend="${activeNav == 'lab-types'} ? ' active' : ''"
+           class="nav-link">
+            <i class="fa-solid fa-flask-vial"></i>
+            <span>Quản lý loại xét nghiệm</span>
+        </a>
+
         <!-- PHARMACY: Manager, Pharmacist -->
         <a th:if="${currentRole.key == 'manager' or currentRole.key == 'pharmacist'}"
            th:href="@{/pharmacy}"

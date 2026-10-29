@@ -15,6 +15,11 @@
                     <h1>Xét nghiệm cận lâm sàng</h1>
                     <p>Tiếp nhận chỉ định từ bác sĩ, cập nhật kết quả và kết luận chuyên môn theo từng loại xét nghiệm.</p>
                 </div>
+                <div th:if="${currentRole.key == 'nurse' or currentRole.key == 'manager'}">
+                    <a th:href="@{/laboratory/types}" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-flask-vial"></i> Quản lý loại xét nghiệm
+                    </a>
+                </div>
             </div>
 
             <div class="stat-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">

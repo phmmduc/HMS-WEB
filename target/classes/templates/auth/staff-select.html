@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0284c7" />
+    <title th:text="'Chọn nhân sự ' + ${selectedRole.label} + ' | XônPanh HMS'">
+      Chọn nhân sự | XônPanh HMS
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+  </head>
+  <body data-page="role-select">
+    <div class="role-landing">
+      <aside class="role-hero">
+        <div class="role-hero-grid"></div>
+        <div class="role-hero-top">
+          <div class="brand-mark"><i class="fa-solid fa-heart-pulse"></i></div>
+          <div>
+            <strong>XônPanh</strong>
+            <span>HOSPITAL MANAGEMENT SYSTEM</span>
+          </div>
+          <span class="role-version">Java · Spring Boot</span>
+        </div>
+
+        <div class="role-hero-main">
+          <span class="role-overline"
+            ><i class="fa-solid fa-user-check"></i> XÁC NHẬN PHIÊN LÀM
+            VIỆC</span
+          >
+          <h1>
+            Chọn nhân sự.<br /><em th:text="${selectedRole.label}">Bác sĩ</em>
+          </h1>
+          <p th:text="${selectedRole.description}">
+            Mô tả vai trò trong hệ thống.
+          </p>
+          <div class="role-hero-metrics">
+            <div>
+              <strong th:text="${#lists.size(staffList)}">02</strong
+              ><span>Nhân viên khả dụng</span>
+            </div>
+            <div>
+              <strong th:text="${selectedRole.shortLabel}">Vai trò</strong
+              ><span>Đang chọn</span>
+            </div>
+            <div><strong>Demo</strong><span>Thymeleaf UI</span></div>
+          </div>
+        </div>
+
+        <div class="role-hero-foot">
+          <span
+            ><i class="fa-solid fa-circle-check" style="color: #34d399"></i>
+            Frontend Demo · Dữ liệu mẫu</span
+          >
+          <span>© 2026 XônPanh HMS</span>
+        </div>
+      </aside>
+
+      <main class="role-selection-panel">
+        <div class="role-selection-top">
+          <span class="environment-label">
+            <span class="live-dot"></span> BƯỚC 02 / 02: CHỌN NHÂN SỰ LÀM VIỆC
+          </span>
+          <a
+            th:href="@{/}"
+            class="btn btn-secondary btn-sm"
+            style="display: inline-flex; align-items: center; gap: 6px"
+          >
+            <i class="fa-solid fa-arrow-left"></i> Quay lại chọn vai trò khác
+          </a>
+        </div>
+
+        <div class="role-intro">
+          <div
+            class="role-intro-icon"
+            th:classappend="${selectedRole.toneClass}"
+          >
+            <i th:class="${'fa-solid ' + selectedRole.icon}"></i>
+          </div>
+          <span class="role-step">BƯỚC 02 / 02</span>
+          <h2>Chọn tài khoản nhân viên</h2>
+          <p>
+            Bạn đang chọn vai trò
+            <strong th:text="${selectedRole.label}" style="color: #0284c7"
+              >Bác sĩ</strong
+            >. Vui lòng chọn một nhân viên cụ thể dưới đây để bắt đầu phiên làm
+            việc trong hệ thống.
+          </p>
+        </div>
+
+        <div class="role-grid">
+          <div
+            th:each="st : ${staffList}"
+            class="role-card"
+            th:classappend="${selectedRole.toneClass} + (${currentStaff != null and currentStaff.idNv == st.idNv} ? ' selected' : '')"
+          >
+            <span class="role-card-top">
+              <span
+                class="role-card-icon"
+                style="font-size: 14px; font-weight: 700"
+                th:text="${st.initials}"
+              >
+                NV
+              </span>
+              <span
+                class="role-card-check"
+                th:if="${currentStaff != null and currentStaff.idNv == st.idNv}"
+              >
+                <i class="fa-solid fa-check"></i>
+              </span>
+            </span>
+
+            <div
+              style="
+                display: flex;
+                align-items: baseline;
+                gap: 8px;
+                margin-top: 4px;
+              "
+            >
+              <strong style="font-size: 17px" th:text="${st.hoTen}"
+                >BS. Nguyễn Hoàng An</strong
+              >
+              <span class="id-code" th:text="${st.idNv}">NV001</span>
+            </div>
+
+            <span class="role-card-desc" style="margin-top: 4px">
+              <span th:text="${st.vaiTro}">Bác sĩ</span>
+              <span
+                th:if="${st.specialtyDetail != null and !st.specialtyDetail.isEmpty()}"
+                th:text="' · ' + ${st.specialtyDetail}"
+              >
+                · Thạc sĩ · Nội tổng hợp</span
+              >
+            </span>
+
+            <span class="role-feature-list" style="margin-top: 14px">
+              <span th:if="${st.roomName != null and !st.roomName.isEmpty()}">
+                <i class="fa-solid fa-door-open" style="color: #0284c7"></i>
+                <span th:text="${st.roomName}">Phòng khám Nội (A-101)</span>
+              </span>
+              <span>
+                <i class="fa-solid fa-phone" style="color: #10b981"></i>
+                <span th:text="${st.phoneDisplay}">0903001001</span>
+              </span>
+              <span>
+                <i class="fa-solid fa-envelope" style="color: #6366f1"></i>
+                <span th:text="${st.email}">an.nguyen@hms.local</span>
+              </span>
+              <span>
+                <i class="fa-solid fa-circle-check" style="color: #10b981"></i>
+                <span th:text="${st.trangThai}">Đang làm việc</span>
+              </span>
+            </span>
+
+            <a
+              th:href="@{'/choose-staff/' + ${st.idNv}}"
+              class="btn btn-primary"
+              th:style="${'margin-top: 18px; width: 100%; justify-content: center; background: ' + selectedRole.accentColor + ';'}"
+            >
+              Bắt đầu làm việc <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div
+            th:if="${#lists.isEmpty(staffList)}"
+            class="empty-state"
+            style="
+              grid-column: 1 / -1;
+              background: white;
+              padding: 40px;
+              border-radius: 16px;
+              border: 1px dashed #cbd5e1;
+              text-align: center;
+            "
+          >
+            <i
+              class="fa-solid fa-user-slash"
+              style="
+                font-size: 36px;
+                color: #94a3b8;
+                margin-bottom: 12px;
+                display: block;
+              "
+            ></i>
+            <p style="font-weight: 600; color: #475569; margin: 0 0 4px 0">
+              Không tìm thấy nhân sự thuộc vai trò này.
+            </p>
+            <p style="font-size: 13px; color: #64748b; margin: 0 0 16px 0">
+              Vui lòng quay lại và chọn vai trò khác hoặc thêm nhân sự trong
+              trang quản lý.
+            </p>
+            <a th:href="@{/}" class="btn btn-secondary btn-sm"
+              ><i class="fa-solid fa-arrow-left"></i> Quay lại chọn vai trò</a
+            >
+          </div>
+        </div>
+
+        <div
+          style="
+            margin-top: 24px;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <span style="font-size: 12px; color: #64748b">
+            <i
+              class="fa-solid fa-circle-info"
+              style="color: #0284c7; margin-right: 6px"
+            ></i>
+            Sau khi chọn, hệ thống sẽ tự động gán tên và vai trò nhân viên vào
+            thanh điều hướng Header.
+          </span>
+          <a th:href="@{/}" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-rotate-left"></i> Chọn lại vai trò
+          </a>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
