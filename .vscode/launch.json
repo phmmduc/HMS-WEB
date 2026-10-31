@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Launch MediCore HMS (Spring Boot)",
+      "request": "launch",
+      "mainClass": "com.hms.HmsApplication",
+      "projectName": "medicore-hms",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

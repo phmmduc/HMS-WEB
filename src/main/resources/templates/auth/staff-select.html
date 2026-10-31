@@ -152,8 +152,8 @@
                 <span th:text="${st.email}">an.nguyen@hms.local</span>
               </span>
               <span>
-                <i class="fa-solid fa-circle-check" style="color: #10b981"></i>
-                <span th:text="${st.trangThai}">Đang làm việc</span>
+                <i class="fa-solid fa-circle-check" th:style="${st.trangThai == 'DANG_LAM' or st.trangThai == 'Đang làm việc' ? 'color: #10b981' : (st.trangThai == 'TAM_NGHI' or st.trangThai == 'Tạm nghỉ' ? 'color: #f59e0b' : 'color: #94a3b8')}"></i>
+                <span th:text="${st.trangThaiDisplay}">Đang làm việc</span>
               </span>
             </span>
 

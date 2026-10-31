@@ -2,6 +2,9 @@ package com.hms.mock;
 
 import com.hms.dto.StaffFormDto;
 import com.hms.model.*;
+import com.hms.service.DepartmentRoomDbService;
+import com.hms.service.StaffDbService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -11,6 +14,12 @@ import java.util.stream.Collectors;
 public class MockStaffService {
 
     private final MockDataStore store;
+
+    @Autowired(required = false)
+    private StaffDbService staffDbService;
+
+    @Autowired(required = false)
+    private DepartmentRoomDbService departmentRoomDbService;
 
     public MockStaffService(MockDataStore store) {
         this.store = store;
@@ -61,11 +70,18 @@ public class MockStaffService {
                 phones,
                 dto.getEmail() != null ? dto.getEmail().trim() : "",
                 dto.getVaiTro() != null ? dto.getVaiTro().trim() : "Bác sĩ",
-                dto.getTrangThai() != null ? dto.getTrangThai().trim() : "Đang làm việc",
+                Staff.normalizeTrangThai(dto.getTrangThai()),
                 dto.getSpecialtyDetail() != null ? dto.getSpecialtyDetail().trim() : "",
                 dto.getIdPk() != null && !dto.getIdPk().isBlank() ? dto.getIdPk().trim() : null
         );
         store.staffMembers.put(idNv, staff);
+        if (staffDbService != null) {
+            try {
+                staffDbService.saveStaff(staff);
+            } catch (Exception e) {
+                // Log and allow graceful operation
+            }
+        }
         return staff;
     }
 
@@ -81,10 +97,20 @@ public class MockStaffService {
         }
         if (dto.getEmail() != null) staff.setEmail(dto.getEmail().trim());
         if (dto.getVaiTro() != null && !dto.getVaiTro().isBlank()) staff.setVaiTro(dto.getVaiTro().trim());
-        if (dto.getTrangThai() != null && !dto.getTrangThai().isBlank()) staff.setTrangThai(dto.getTrangThai().trim());
+        if (dto.getTrangThai() != null && !dto.getTrangThai().isBlank()) {
+            staff.setTrangThai(Staff.normalizeTrangThai(dto.getTrangThai()));
+        }
         if (dto.getSpecialtyDetail() != null) staff.setSpecialtyDetail(dto.getSpecialtyDetail().trim());
         if (dto.getIdPk() != null) {
             staff.setIdPk(dto.getIdPk().isBlank() ? null : dto.getIdPk().trim());
+        }
+
+        if (staffDbService != null) {
+            try {
+                staffDbService.saveStaff(staff);
+            } catch (Exception e) {
+                // Log and allow graceful operation
+            }
         }
 
         return staff;
@@ -108,6 +134,9 @@ public class MockStaffService {
         }
 
         store.staffMembers.remove(idNv);
+        if (staffDbService != null) {
+            try { staffDbService.deleteStaff(idNv); } catch (Exception ignored) {}
+        }
     }
 
     // SPECIALTIES
@@ -123,6 +152,9 @@ public class MockStaffService {
                 : store.nextSpecialtyId();
         Specialty sp = new Specialty(idCk, specialty.getTenCk() != null ? specialty.getTenCk().trim() : "Chuyên khoa mới");
         store.specialties.put(idCk, sp);
+        if (departmentRoomDbService != null) {
+            try { departmentRoomDbService.saveSpecialty(sp); } catch (Exception ignored) {}
+        }
         return sp;
     }
 
@@ -135,6 +167,9 @@ public class MockStaffService {
             if (sp.getIdCk().equals(r.getIdCk())) {
                 r.setTenChuyenKhoa(sp.getTenCk());
             }
+        }
+        if (departmentRoomDbService != null) {
+            try { departmentRoomDbService.saveSpecialty(sp); } catch (Exception ignored) {}
         }
         return sp;
     }
@@ -149,6 +184,9 @@ public class MockStaffService {
         }
 
         store.specialties.remove(idCk);
+        if (departmentRoomDbService != null) {
+            try { departmentRoomDbService.deleteSpecialty(idCk); } catch (Exception ignored) {}
+        }
     }
 
     // CLINIC ROOMS
@@ -171,6 +209,9 @@ public class MockStaffService {
             room.setTrangThai("Hoạt động");
         }
         store.rooms.put(idPk, room);
+        if (departmentRoomDbService != null) {
+            try { departmentRoomDbService.saveRoom(room); } catch (Exception ignored) {}
+        }
         return room;
     }
 
@@ -185,6 +226,9 @@ public class MockStaffService {
             Specialty sp = store.specialties.get(room.getIdCk());
             if (sp != null) r.setTenChuyenKhoa(sp.getTenCk());
         }
+        if (departmentRoomDbService != null) {
+            try { departmentRoomDbService.saveRoom(r); } catch (Exception ignored) {}
+        }
         return r;
     }
 
@@ -198,6 +242,9 @@ public class MockStaffService {
         }
 
         store.rooms.remove(idPk);
+        if (departmentRoomDbService != null) {
+            try { departmentRoomDbService.deleteRoom(idPk); } catch (Exception ignored) {}
+        }
     }
 
     public List<LabType> getAllLabTypes() {

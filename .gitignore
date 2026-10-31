@@ -1,3 +1,27 @@
-.DS_Store
+# ==============================================================================
+# MediCore HMS - Git Ignore Configuration
+# ==============================================================================
+
+# Maven Build Artifacts
+target/
+*.class
+*.zip
+
+# Environment Variables & Credentials (Security)
 .env
+.env.*
+!.env.example
+
+# Logs
 *.log
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE Configurations
+.idea/
+.vscode/settings.json
+
+# Maven Wrapper binaries
+.mvn/wrapper/maven-wrapper.jar

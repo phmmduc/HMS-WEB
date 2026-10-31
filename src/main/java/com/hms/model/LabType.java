@@ -18,8 +18,14 @@ public class LabType {
     public String getIdLxn() { return idLxn; }
     public void setIdLxn(String idLxn) { this.idLxn = idLxn; }
 
+    public String getIdLoaiXn() { return idLxn; }
+    public void setIdLoaiXn(String idLoaiXn) { this.idLxn = idLoaiXn; }
+
     public String getTenLxn() { return tenLxn; }
     public void setTenLxn(String tenLxn) { this.tenLxn = tenLxn; }
+
+    public String getTenLoai() { return tenLxn; }
+    public void setTenLoai(String tenLoai) { this.tenLxn = tenLoai; }
 
     public Long getChiPhi() { return chiPhi; }
     public void setChiPhi(Long chiPhi) { this.chiPhi = chiPhi; }

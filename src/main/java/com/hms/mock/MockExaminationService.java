@@ -3,6 +3,8 @@ package com.hms.mock;
 import com.hms.dto.DoctorExamDto;
 import com.hms.dto.ExamFormDto;
 import com.hms.model.*;
+import com.hms.service.ExaminationDbService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,6 +15,9 @@ import java.util.stream.Collectors;
 public class MockExaminationService {
 
     private final MockDataStore store;
+
+    @Autowired(required = false)
+    private ExaminationDbService examinationDbService;
 
     public MockExaminationService(MockDataStore store) {
         this.store = store;
@@ -71,6 +76,9 @@ public class MockExaminationService {
         store.invoices.put(invoiceId, invoice);
 
         store.linkAll();
+        if (examinationDbService != null) {
+            try { examinationDbService.saveExamination(exam); } catch (Exception ignored) {}
+        }
         return exam;
     }
 
@@ -192,6 +200,9 @@ public class MockExaminationService {
         syncInvoice(examId);
 
         store.linkAll();
+        if (examinationDbService != null) {
+            try { examinationDbService.saveExamination(exam); } catch (Exception ignored) {}
+        }
         return exam;
     }
 

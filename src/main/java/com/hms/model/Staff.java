@@ -11,7 +11,7 @@ public class Staff {
     private List<String> sdt = new ArrayList<>();
     private String email;
     private String vaiTro; // "Bác sĩ", "Y tá", "Dược sĩ", "Thu ngân", "Quản lý"
-    private String trangThai; // "Đang làm việc"
+    private String trangThai = "DANG_LAM"; // Database: DANG_LAM, TAM_NGHI, NGHI_VIEC
     private String specialtyDetail; // e.g. "Thạc sĩ · Nội tổng hợp" hoặc "Điều dưỡng đại học"
     private String idPk; // Mã phòng khám phân công (dành cho Bác sĩ)
     private String roomName;
@@ -30,7 +30,7 @@ public class Staff {
         this.sdt = sdt != null ? sdt : new ArrayList<>();
         this.email = email;
         this.vaiTro = vaiTro;
-        this.trangThai = trangThai;
+        this.trangThai = normalizeTrangThai(trangThai);
         this.specialtyDetail = specialtyDetail;
         this.idPk = idPk;
     }
@@ -50,6 +50,9 @@ public class Staff {
     public List<String> getSdt() { return sdt; }
     public void setSdt(List<String> sdt) { this.sdt = sdt; }
 
+    public List<String> getPhoneNumbers() { return sdt; }
+    public void setPhoneNumbers(List<String> phoneNumbers) { this.sdt = phoneNumbers; }
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
@@ -57,10 +60,47 @@ public class Staff {
     public void setVaiTro(String vaiTro) { this.vaiTro = vaiTro; }
 
     public String getTrangThai() { return trangThai; }
-    public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
+    public void setTrangThai(String trangThai) { this.trangThai = normalizeTrangThai(trangThai); }
+
+    public String getTrangThaiDisplay() {
+        if (trangThai == null || trangThai.isBlank()) return "Đang làm việc";
+        String code = normalizeTrangThai(trangThai);
+        return switch (code) {
+            case "TAM_NGHI" -> "Tạm nghỉ";
+            case "NGHI_VIEC" -> "Nghỉ việc";
+            default -> "Đang làm việc";
+        };
+    }
+
+    public String getTrangThaiBadgeClass() {
+        String code = normalizeTrangThai(trangThai);
+        return switch (code) {
+            case "TAM_NGHI" -> "pill-warning";
+            case "NGHI_VIEC" -> "pill-secondary";
+            default -> "pill-success";
+        };
+    }
+
+    public static String normalizeTrangThai(String raw) {
+        if (raw == null || raw.isBlank()) return "DANG_LAM";
+        String clean = raw.trim();
+        if ("DANG_LAM".equalsIgnoreCase(clean) || "Đang làm việc".equalsIgnoreCase(clean)) {
+            return "DANG_LAM";
+        }
+        if ("TAM_NGHI".equalsIgnoreCase(clean) || "Tạm nghỉ".equalsIgnoreCase(clean) || "Nghỉ phép".equalsIgnoreCase(clean)) {
+            return "TAM_NGHI";
+        }
+        if ("NGHI_VIEC".equalsIgnoreCase(clean) || "Nghỉ việc".equalsIgnoreCase(clean) || "Đã nghỉ việc".equalsIgnoreCase(clean)) {
+            return "NGHI_VIEC";
+        }
+        return "DANG_LAM";
+    }
 
     public String getSpecialtyDetail() { return specialtyDetail; }
     public void setSpecialtyDetail(String specialtyDetail) { this.specialtyDetail = specialtyDetail; }
+
+    public String getChucDanh() { return specialtyDetail; }
+    public void setChucDanh(String chucDanh) { this.specialtyDetail = chucDanh; }
 
     public String getInitials() {
         if (hoTen == null || hoTen.trim().isEmpty()) return "NV";

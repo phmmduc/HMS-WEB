@@ -34,6 +34,7 @@ public class HealthInsurance {
 
     public Integer getMucHuong() { return mucHuong; }
     public void setMucHuong(Integer mucHuong) { this.mucHuong = mucHuong; }
+    public void setMucHuong(Short mucHuong) { this.mucHuong = mucHuong != null ? mucHuong.intValue() : null; }
 
     public String getNgayBatDau() { return ngayBatDau; }
     public void setNgayBatDau(String ngayBatDau) { this.ngayBatDau = ngayBatDau; }

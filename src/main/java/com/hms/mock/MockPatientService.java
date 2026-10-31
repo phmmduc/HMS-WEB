@@ -5,6 +5,8 @@ import com.hms.model.HealthInsurance;
 import com.hms.model.MedicalRecord;
 import com.hms.model.Patient;
 import com.hms.model.PatientRelative;
+import com.hms.service.PatientDbService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,6 +17,9 @@ import java.util.stream.Collectors;
 public class MockPatientService {
 
     private final MockDataStore store;
+
+    @Autowired(required = false)
+    private PatientDbService patientDbService;
 
     public MockPatientService(MockDataStore store) {
         this.store = store;
@@ -106,6 +111,13 @@ public class MockPatientService {
 
         store.patients.put(patientId, patient);
         store.linkAll();
+
+        if (patientDbService != null) {
+            try {
+                patientDbService.savePatient(patient);
+            } catch (Exception ignored) {}
+        }
+
         return patient;
     }
 

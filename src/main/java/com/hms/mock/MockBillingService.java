@@ -3,6 +3,8 @@ package com.hms.mock;
 import com.hms.dto.RevenueReportDto;
 import com.hms.model.Examination;
 import com.hms.model.Invoice;
+import com.hms.service.BillingDbService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,6 +16,9 @@ import java.util.stream.Collectors;
 public class MockBillingService {
 
     private final MockDataStore store;
+
+    @Autowired(required = false)
+    private BillingDbService billingDbService;
 
     public MockBillingService(MockDataStore store) {
         this.store = store;
@@ -98,6 +103,13 @@ public class MockBillingService {
         }
 
         store.linkAll();
+
+        if (billingDbService != null) {
+            try {
+                billingDbService.payInvoice(invoiceId, method, null);
+            } catch (Exception ignored) {}
+        }
+
         return true;
     }
 

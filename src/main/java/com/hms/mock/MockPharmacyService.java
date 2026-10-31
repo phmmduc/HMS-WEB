@@ -6,6 +6,8 @@ import com.hms.model.Medicine;
 import com.hms.model.MedicineLot;
 import com.hms.model.Prescription;
 import com.hms.model.PrescriptionDetail;
+import com.hms.service.PharmacyDbService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,6 +18,9 @@ import java.util.stream.Collectors;
 public class MockPharmacyService {
 
     private final MockDataStore store;
+
+    @Autowired(required = false)
+    private PharmacyDbService pharmacyDbService;
 
     public MockPharmacyService(MockDataStore store) {
         this.store = store;
@@ -100,6 +105,9 @@ public class MockPharmacyService {
         );
 
         store.medicines.put(idThuoc, med);
+        if (pharmacyDbService != null) {
+            try { pharmacyDbService.saveMedicine(med); } catch (Exception ignored) {}
+        }
         return med;
     }
 
@@ -224,6 +232,9 @@ public class MockPharmacyService {
 
         store.medicineLots.put(idLo, lot);
         recalculateMedicineStock(med.getIdThuoc());
+        if (pharmacyDbService != null) {
+            try { pharmacyDbService.saveLot(lot); } catch (Exception ignored) {}
+        }
         return lot;
     }
 
@@ -255,6 +266,10 @@ public class MockPharmacyService {
 
         recalculateMedicineStock(idThuoc);
         store.linkAll();
+
+        if (pharmacyDbService != null) {
+            try { pharmacyDbService.deleteLot(idLo); } catch (Exception ignored) {}
+        }
 
         return "Đã loại bỏ lô thuốc hết hạn [" + lot.getSoLo() + "] (HSD: " + lot.getHanSuDung() + ") và trừ " + tonTruoc + " đơn vị tồn kho.";
     }

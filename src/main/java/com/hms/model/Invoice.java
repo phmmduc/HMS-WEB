@@ -4,6 +4,7 @@ public class Invoice {
     private String idHoadon;
     private String idPhieukham;
     private String idBn;
+    private String idNv;
     private Long soTien;
     private String loaiThu;
     private String phuongThucTt; // "Tiền mặt", "Chuyển khoản", "Thẻ", "Bảo hiểm"
@@ -13,6 +14,8 @@ public class Invoice {
     // Joined fields
     private String patientName;
     private String patientPhone;
+    private Long tienKham;
+    private Long benhNhanTra;
 
     public Invoice() {}
 
@@ -35,6 +38,9 @@ public class Invoice {
     public String getIdBn() { return idBn; }
     public void setIdBn(String idBn) { this.idBn = idBn; }
 
+    public String getIdNv() { return idNv; }
+    public void setIdNv(String idNv) { this.idNv = idNv; }
+
     public Long getSoTien() { return soTien; }
     public void setSoTien(Long soTien) { this.soTien = soTien; }
 
@@ -55,6 +61,12 @@ public class Invoice {
 
     public String getPatientPhone() { return patientPhone; }
     public void setPatientPhone(String patientPhone) { this.patientPhone = patientPhone; }
+
+    public Long getTienKham() { return tienKham; }
+    public void setTienKham(Long tienKham) { this.tienKham = tienKham; }
+
+    public Long getBenhNhanTra() { return benhNhanTra; }
+    public void setBenhNhanTra(Long benhNhanTra) { this.benhNhanTra = benhNhanTra; }
 
     public boolean isPaid() {
         return "Đã thanh toán".equalsIgnoreCase(trangThai);

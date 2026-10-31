@@ -86,17 +86,17 @@ public class MockDataStore {
         }
 
         // 3. Staff Members
-        staffMembers.put("NV001", new Staff("NV001", "BS. Nguyễn Hoàng An", "Nam", "1980-02-12", List.of("0903001001"), "an.nguyen@hms.local", "Bác sĩ", "Đang làm việc", "Thạc sĩ · Nội tổng hợp", "PK01"));
-        staffMembers.put("NV002", new Staff("NV002", "BS. Trần Mai Phương", "Nữ", "1985-09-21", List.of("0903001002"), "phuong.tran@hms.local", "Bác sĩ", "Đang làm việc", "Bác sĩ CKI · Tim mạch", "PK02"));
-        staffMembers.put("NV003", new Staff("NV003", "Điều dưỡng Lê Thu Trang", "Nữ", "1992-06-07", List.of("0903001003"), "trang.le@hms.local", "Y tá", "Đang làm việc", "Điều dưỡng đại học"));
-        staffMembers.put("NV004", new Staff("NV004", "DS. Phạm Quốc Huy", "Nam", "1988-04-18", List.of("0903001004"), "huy.pham@hms.local", "Dược sĩ", "Đang làm việc", "Dược sĩ đại học"));
-        staffMembers.put("NV005", new Staff("NV005", "Nguyễn Hải Yến", "Nữ", "1991-12-03", List.of("0903001005"), "yen.nguyen@hms.local", "Thu ngân", "Đang làm việc", "Chuyên viên viện phí"));
-        staffMembers.put("NV006", new Staff("NV006", "Đỗ Văn Khánh", "Nam", "1978-08-13", List.of("0903001006"), "khanh.do@hms.local", "Quản lý", "Đang làm việc", "Ban Giám đốc"));
-        staffMembers.put("NV007", new Staff("NV007", "Điều dưỡng Hoàng Minh Thảo", "Nữ", "1994-03-15", List.of("0903001007"), "thao.hoang@hms.local", "Y tá", "Đang làm việc", "Cử nhân điều dưỡng"));
-        staffMembers.put("NV008", new Staff("NV008", "DS. Vũ Thị Mai", "Nữ", "1990-11-20", List.of("0903001008"), "mai.vu@hms.local", "Dược sĩ", "Đang làm việc", "Dược sĩ lâm sàng"));
-        staffMembers.put("NV009", new Staff("NV009", "Đỗ Hoàng Long", "Nam", "1993-05-10", List.of("0903001009"), "long.do@hms.local", "Thu ngân", "Đang làm việc", "Kế toán viên viện phí"));
-        staffMembers.put("NV010", new Staff("NV010", "Trần Đình Trọng", "Nam", "1982-10-05", List.of("0903001010"), "trong.tran@hms.local", "Quản lý", "Đang làm việc", "Phó Giám đốc điều hành"));
-        staffMembers.put("NV011", new Staff("NV011", "BS. Lê Hoàng Nam", "Nam", "1989-07-25", List.of("0903001011"), "nam.le@hms.local", "Bác sĩ", "Đang làm việc", "Bác sĩ CKI · Nhi khoa", "PK04"));
+        staffMembers.put("NV001", new Staff("NV001", "BS. Nguyễn Hoàng An", "Nam", "1980-02-12", List.of("0903001001"), "an.nguyen@hms.local", "Bác sĩ", "DANG_LAM", "Thạc sĩ · Nội tổng hợp", "PK01"));
+        staffMembers.put("NV002", new Staff("NV002", "BS. Trần Mai Phương", "Nữ", "1985-09-21", List.of("0903001002"), "phuong.tran@hms.local", "Bác sĩ", "DANG_LAM", "Bác sĩ CKI · Tim mạch", "PK02"));
+        staffMembers.put("NV003", new Staff("NV003", "Điều dưỡng Lê Thu Trang", "Nữ", "1992-06-07", List.of("0903001003"), "trang.le@hms.local", "Y tá", "DANG_LAM", "Điều dưỡng đại học"));
+        staffMembers.put("NV004", new Staff("NV004", "DS. Phạm Quốc Huy", "Nam", "1988-04-18", List.of("0903001004"), "huy.pham@hms.local", "Dược sĩ", "DANG_LAM", "Dược sĩ đại học"));
+        staffMembers.put("NV005", new Staff("NV005", "Nguyễn Hải Yến", "Nữ", "1991-12-03", List.of("0903001005"), "yen.nguyen@hms.local", "Thu ngân", "DANG_LAM", "Chuyên viên viện phí"));
+        staffMembers.put("NV006", new Staff("NV006", "Đỗ Văn Khánh", "Nam", "1978-08-13", List.of("0903001006"), "khanh.do@hms.local", "Quản lý", "DANG_LAM", "Ban Giám đốc"));
+        staffMembers.put("NV007", new Staff("NV007", "Điều dưỡng Hoàng Minh Thảo", "Nữ", "1994-03-15", List.of("0903001007"), "thao.hoang@hms.local", "Y tá", "DANG_LAM", "Cử nhân điều dưỡng"));
+        staffMembers.put("NV008", new Staff("NV008", "DS. Vũ Thị Mai", "Nữ", "1990-11-20", List.of("0903001008"), "mai.vu@hms.local", "Dược sĩ", "DANG_LAM", "Dược sĩ lâm sàng"));
+        staffMembers.put("NV009", new Staff("NV009", "Đỗ Hoàng Long", "Nam", "1993-05-10", List.of("0903001009"), "long.do@hms.local", "Thu ngân", "DANG_LAM", "Kế toán viên viện phí"));
+        staffMembers.put("NV010", new Staff("NV010", "Trần Đình Trọng", "Nam", "1982-10-05", List.of("0903001010"), "trong.tran@hms.local", "Quản lý", "DANG_LAM", "Phó Giám đốc điều hành"));
+        staffMembers.put("NV011", new Staff("NV011", "BS. Lê Hoàng Nam", "Nam", "1989-07-25", List.of("0903001011"), "nam.le@hms.local", "Bác sĩ", "DANG_LAM", "Bác sĩ CKI · Nhi khoa", "PK04"));
 
         // 4. Lab Types
         labTypes.put("XN001", new LabType("XN001", "Công thức máu", 180000L, "Hoạt động"));

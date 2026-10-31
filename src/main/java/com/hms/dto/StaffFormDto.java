@@ -8,7 +8,7 @@ public class StaffFormDto {
     private String phone;
     private String email;
     private String vaiTro;
-    private String trangThai;
+    private String trangThai = "DANG_LAM";
     private String specialtyDetail;
     private String idPk;
 

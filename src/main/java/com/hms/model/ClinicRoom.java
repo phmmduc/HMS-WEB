@@ -24,8 +24,14 @@ public class ClinicRoom {
     public String getTenPhong() { return tenPhong; }
     public void setTenPhong(String tenPhong) { this.tenPhong = tenPhong; }
 
+    public String getTenPk() { return tenPhong; }
+    public void setTenPk(String tenPk) { this.tenPhong = tenPk; }
+
     public String getSoPhong() { return soPhong; }
     public void setSoPhong(String soPhong) { this.soPhong = soPhong; }
+
+    public String getViTri() { return soPhong; }
+    public void setViTri(String viTri) { this.soPhong = viTri; }
 
     public String getTrangThai() { return trangThai; }
     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }

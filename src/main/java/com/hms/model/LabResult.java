@@ -59,5 +59,20 @@ public class LabResult {
 
     public String getPatientId() { return patientId; }
     public void setPatientId(String patientId) { this.patientId = patientId; }
+
+    public String getIdKq() { return idKqxn; }
+    public void setIdKq(String idKq) { this.idKqxn = idKq; }
+
+    public String getTenXn() { return tenLxn; }
+    public void setTenXn(String tenXn) { this.tenLxn = tenXn; }
+
+    public String getGiaTri() { return ketQua; }
+    public void setGiaTri(String giaTri) { this.ketQua = giaTri; }
+
+    public String getDanhGia() { return ketLuan; }
+    public void setDanhGia(String danhGia) { this.ketLuan = danhGia; }
+
+    public String getNgayThucHien() { return thoiGian; }
+    public void setNgayThucHien(String ngayThucHien) { this.thoiGian = ngayThucHien; }
 }
 

@@ -83,7 +83,11 @@
                                 <td th:text="${st.specialtyDetail != null and !st.specialtyDetail.isEmpty() ? st.specialtyDetail : '—'}">Thạc sĩ · Nội tổng hợp</td>
                                 <td th:text="${st.phoneDisplay}">0903001001</td>
                                 <td th:text="${st.email}">an.nguyen@hms.local</td>
-                                <td><span class="pill pill-success" th:text="${st.trangThai}">Đang làm việc</span></td>
+                                <td>
+                                    <span class="pill"
+                                          th:classappend="${st.trangThaiBadgeClass}"
+                                          th:text="${st.trangThaiDisplay}">Đang làm việc</span>
+                                </td>
                                 <td>
                                     <div class="row-actions">
                                         <button type="button" class="btn btn-secondary btn-sm" th:attr="data-open-modal='modal-edit-staff-' + ${st.idNv}" title="Chỉnh sửa">
@@ -157,9 +161,9 @@
                                                     <label class="form-field">
                                                         <span>Trạng thái</span>
                                                         <select name="trangThai">
-                                                            <option value="Đang làm việc" th:selected="${st.trangThai == 'Đang làm việc'}">Đang làm việc</option>
-                                                            <option value="Nghỉ phép" th:selected="${st.trangThai == 'Nghỉ phép'}">Nghỉ phép</option>
-                                                            <option value="Đã nghỉ việc" th:selected="${st.trangThai == 'Đã nghỉ việc'}">Đã nghỉ việc</option>
+                                                            <option value="DANG_LAM" th:selected="${st.trangThai == 'DANG_LAM' or st.trangThai == 'Đang làm việc'}">Đang làm việc</option>
+                                                            <option value="TAM_NGHI" th:selected="${st.trangThai == 'TAM_NGHI' or st.trangThai == 'Tạm nghỉ' or st.trangThai == 'Nghỉ phép'}">Tạm nghỉ</option>
+                                                            <option value="NGHI_VIEC" th:selected="${st.trangThai == 'NGHI_VIEC' or st.trangThai == 'Nghỉ việc' or st.trangThai == 'Đã nghỉ việc'}">Nghỉ việc</option>
                                                         </select>
                                                     </label>
 
@@ -424,8 +428,9 @@
                 <label class="form-field">
                     <span>Trạng thái</span>
                     <select name="trangThai">
-                        <option value="Đang làm việc">Đang làm việc</option>
-                        <option value="Nghỉ phép">Nghỉ phép</option>
+                        <option value="DANG_LAM" selected>Đang làm việc</option>
+                        <option value="TAM_NGHI">Tạm nghỉ</option>
+                        <option value="NGHI_VIEC">Nghỉ việc</option>
                     </select>
                 </label>
 

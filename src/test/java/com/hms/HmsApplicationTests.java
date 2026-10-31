@@ -182,6 +182,78 @@ class HmsApplicationTests {
     }
 
     @Test
+    void testStaffStatusNormalizationAndFlow() throws Exception {
+        // Case 1: Thêm nhân viên mới với trạng thái "Đang làm việc" / "DANG_LAM"
+        StaffFormDto staff1 = new StaffFormDto();
+        staff1.setHoTen("BS. Phạm Minh Đức");
+        staff1.setVaiTro("Bác sĩ");
+        staff1.setGioiTinh("Nam");
+        staff1.setTrangThai("DANG_LAM");
+        Staff created1 = staffService.createStaff(staff1);
+        assertThat(created1.getTrangThai()).isEqualTo("DANG_LAM");
+        assertThat(created1.getTrangThaiDisplay()).isEqualTo("Đang làm việc");
+        assertThat(created1.getTrangThaiBadgeClass()).isEqualTo("pill-success");
+
+        // Thêm nhân viên gửi chuỗi tiếng Việt "Đang làm việc" -> tự động chuẩn hóa sang DANG_LAM
+        StaffFormDto staff1VN = new StaffFormDto();
+        staff1VN.setHoTen("BS. Nguyễn Hoạt Động");
+        staff1VN.setVaiTro("Bác sĩ");
+        staff1VN.setTrangThai("Đang làm việc");
+        Staff created1VN = staffService.createStaff(staff1VN);
+        assertThat(created1VN.getTrangThai()).isEqualTo("DANG_LAM");
+        assertThat(created1VN.getTrangThaiDisplay()).isEqualTo("Đang làm việc");
+
+        // Case 2: Thêm nhân viên với trạng thái "Tạm nghỉ" / "TAM_NGHI"
+        StaffFormDto staff2 = new StaffFormDto();
+        staff2.setHoTen("Điều dưỡng Trần Thị Nghỉ Phép");
+        staff2.setVaiTro("Y tá");
+        staff2.setTrangThai("TAM_NGHI");
+        Staff created2 = staffService.createStaff(staff2);
+        assertThat(created2.getTrangThai()).isEqualTo("TAM_NGHI");
+        assertThat(created2.getTrangThaiDisplay()).isEqualTo("Tạm nghỉ");
+        assertThat(created2.getTrangThaiBadgeClass()).isEqualTo("pill-warning");
+
+        // Case 3: Thêm nhân viên với trạng thái "Nghỉ việc" / "NGHI_VIEC"
+        StaffFormDto staff3 = new StaffFormDto();
+        staff3.setHoTen("DS. Lê Văn Nghỉ");
+        staff3.setVaiTro("Dược sĩ");
+        staff3.setTrangThai("NGHI_VIEC");
+        Staff created3 = staffService.createStaff(staff3);
+        assertThat(created3.getTrangThai()).isEqualTo("NGHI_VIEC");
+        assertThat(created3.getTrangThaiDisplay()).isEqualTo("Nghỉ việc");
+
+        // Case 4: Chỉnh sửa trạng thái của nhân viên đã tồn tại
+        StaffFormDto updateDto = new StaffFormDto();
+        updateDto.setIdNv(created1.getIdNv());
+        updateDto.setHoTen("BS. Phạm Minh Đức (Cập nhật)");
+        updateDto.setVaiTro("Bác sĩ");
+        updateDto.setTrangThai("TAM_NGHI");
+        Staff updated = staffService.updateStaff(updateDto);
+        assertThat(updated.getTrangThai()).isEqualTo("TAM_NGHI");
+        assertThat(updated.getTrangThaiDisplay()).isEqualTo("Tạm nghỉ");
+
+        updateDto.setTrangThai("NGHI_VIEC");
+        Staff updated2 = staffService.updateStaff(updateDto);
+        assertThat(updated2.getTrangThai()).isEqualTo("NGHI_VIEC");
+        assertThat(updated2.getTrangThaiDisplay()).isEqualTo("Nghỉ việc");
+
+        // Case 5: Tải lại trang và kiểm tra giao diện /staff hiển thị đúng mã value và text tiếng Việt
+        mockMvc.perform(get("/staff"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("staff/index"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("DANG_LAM")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("TAM_NGHI")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("NGHI_VIEC")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Đang làm việc")));
+
+        // Dọn dẹp dữ liệu test
+        staffService.deleteStaff(created1.getIdNv());
+        staffService.deleteStaff(created1VN.getIdNv());
+        staffService.deleteStaff(created2.getIdNv());
+        staffService.deleteStaff(created3.getIdNv());
+    }
+
+    @Test
     void testSpecialtyAndRoomCrudAndConstraints() {
         // 1. Add specialty
         Specialty sp = new Specialty(null, "Răng Hàm Mặt");
